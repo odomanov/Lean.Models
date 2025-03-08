@@ -1,0 +1,7 @@
+name = "ATC"
+version = "0.1.0"
+defaultTargets = ["atc"]
+
+[[lean_lib]]
+name = "ATC"
+
