@@ -13,11 +13,13 @@ inductive Location : Type
 | Front | Center
 deriving BEq, Repr
 
+-- тип дежурных станций
 structure DutyStation : Type where
-  capacity : Nat
+  capacity : Nat                      -- способность контролировать трафик
   location : Location
 deriving BEq, Repr
 
+-- простой тип для времени
 abbrev Time : Type := Std.Time.Timestamp
 abbrev LastShiftEnded : Type := Time
 deriving instance Repr for LastShiftEnded
@@ -44,7 +46,7 @@ def DS3 : DutyStation := ⟨30, .Center⟩
 
 -- зоны контроля
 structure ControlZone : Type where
-  Traffic : Nat
+  Traffic : Nat                       -- трафик в зоне
 deriving Repr
 
 def OAK21C : ControlZone := { Traffic := 15 }
