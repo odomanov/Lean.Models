@@ -22,13 +22,13 @@ abbrev Time : Type := Std.Time.Timestamp
 abbrev LastShiftEnded : Type := Time
 deriving instance Repr for LastShiftEnded
 
-namespace ATC.Info
-
 -- информация о диспетчере
-structure Info where
+structure ATC.Info where
   employeeID : String
   rating : ExpLevel
 deriving Repr
+
+namespace ATC.Info
 
 -- три диспетчера
 def Gwen : Info := ⟨"ATC67", .B⟩

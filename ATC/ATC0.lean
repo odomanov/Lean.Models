@@ -1,31 +1,33 @@
 -- ATC -- авиационный диспетчер
--- минимальная теория: диспетчеры и дежурные станции
+-- минимальная модель: диспетчеры и дежурные станции
 import ATC.Situation
 
-inductive Action : Type
-| take_station : DutyStation → Action
-| release_station : Action
-
 -- состояния диспетчера
-inductive State : Type
-| on_duty : DutyStation → Time → State    -- дежурит на станции
-| off_duty : LastShiftEnded → State       -- свободен
+inductive ATC.State : Type
+| on_duty : DutyStation → Time → ATC.State    -- дежурит на станции
+| off_duty : LastShiftEnded → ATC.State       -- свободен
 deriving Repr
-open State
+open ATC.State
 
--- activity for State
+-- действия при переходе в состояние
+inductive Action : Type
+| take_station : DutyStation → Action    -- занять станцию
+| release_station : Action               -- освободить станцию
+
+-- activity for State (список действий при входе в состояние)
 -- (полагаем, что функция есть, но для простоты не определяем её)
-axiom StateToAction : State → List Action
+axiom StateToAction : ATC.State → List Action
 
 -- диспетчер с состоянием (дежурный/свободен)
-structure ATC extends ATC.Info.Info where
-  state : State
+structure ATC extends ATC.Info where
+  state : ATC.State
 deriving Repr
 
 def Gwen    : ATC := ⟨ATC.Info.Gwen,    off_duty (0 : Time)⟩
 def Toshico : ATC := ⟨ATC.Info.Toshico, off_duty (0 : Time)⟩
 def Ianto   : ATC := ⟨ATC.Info.Ianto, on_duty DS1 (0 : Time)⟩
 
+-- Список диспетчеров.
 -- TODO: автоматизировать
 def ATCs : List ATC := [Gwen, Toshico, Ianto]
 
@@ -41,7 +43,7 @@ def ATC.isOffDuty (c : ATC) : Prop :=
   | _ => False
 
 -- докажем, что Gwen свободен
-example : Gwen.isOffDuty := by trivial  --True.intro
+example : Gwen.isOffDuty := by trivial
 
 -- докажем, что Ianto дежурит
 theorem t0 : Ianto.isOnDuty :=
@@ -68,7 +70,11 @@ inductive Event : Type
 | login : DutyStation → Time → Event
 | logout : Time → Event
 
--- тип переходов между состояниями по событию
+-- Тип переходов между состояниями по событию.
+-- m1, m2 определяют, какие переходы возможны.
+-- m1 = "по событию login свободный диспетчер переходит в состояние дежурства".
+-- m2 = "по событию logout дежурный диспетчер освобождается".
+-- Условие tt определяет последовательность времён.
 inductive Move : State → Event → State → Prop
 | m1 (s : DutyStation) (t0 t : Time) {tt : t0 ≤ t} :
   Move (off_duty t0) (Event.login s t) (on_duty s t)
