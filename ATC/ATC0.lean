@@ -6,6 +6,7 @@ inductive Action : Type
 | take_station : DutyStation → Action
 | release_station : Action
 
+-- состояния диспетчера
 inductive State : Type
 | on_duty : DutyStation → Time → State    -- дежурит на станции
 | off_duty : LastShiftEnded → State       -- свободен
@@ -40,7 +41,7 @@ def ATC.isOffDuty (c : ATC) : Prop :=
   | _ => False
 
 -- докажем, что Gwen свободен
-example : Gwen.isOffDuty := True.intro
+example : Gwen.isOffDuty := by trivial  --True.intro
 
 -- докажем, что Ianto дежурит
 theorem t0 : Ianto.isOnDuty :=

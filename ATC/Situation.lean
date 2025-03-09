@@ -1,50 +1,48 @@
 -- ATC -- авиационный диспетчер
--- исходная ситуация
+-- Определение объектов модели: диспетчеров (ATC), дежурных станций
+-- (DutyStation) и зон (Zone)
 import Std.Time
 
--- experience level
+-- рейтинг диспетчера
 inductive ExpLevel : Type
 | A | B | C
 deriving Repr
 
+-- местонахождение станции
 inductive Location : Type
 | Front | Center
 deriving BEq, Repr
-open Location
-
-abbrev Time : Type := Std.Time.Timestamp
 
 structure DutyStation : Type where
   capacity : Nat
   location : Location
 deriving BEq, Repr
 
--- structure OnDutyController : Type where
---   LoginTime : String --Date
---   Station : DutyStation
-
--- structure OffDutyController : Type where
---   LastShiftEnded : String --Date
-
+abbrev Time : Type := Std.Time.Timestamp
 abbrev LastShiftEnded : Type := Time
 deriving instance Repr for LastShiftEnded
 
 namespace ATC.Info
+
+-- информация о диспетчере
 structure Info where
   employeeID : String
   rating : ExpLevel
 deriving Repr
 
+-- три диспетчера
 def Gwen : Info := ⟨"ATC67", .B⟩
 def Toshico : Info := ⟨"ATC53", .A⟩
 def Ianto : Info := ⟨"ATC51", .C⟩
 
 end ATC.Info
 
-def DS1 : DutyStation := ⟨20, Front⟩
-def DS2 : DutyStation := ⟨45, Front⟩
-def DS3 : DutyStation := ⟨30, Center⟩
+-- дежурные станции
+def DS1 : DutyStation := ⟨20, .Front⟩
+def DS2 : DutyStation := ⟨45, .Front⟩
+def DS3 : DutyStation := ⟨30, .Center⟩
 
+-- зоны контроля
 structure ControlZone : Type where
   Traffic : Nat
 deriving Repr
