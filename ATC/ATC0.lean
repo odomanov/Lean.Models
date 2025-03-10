@@ -31,6 +31,24 @@ def Ianto   : ATC := ⟨ATC.Info.Ianto, on_duty DS1 (0 : Time)⟩
 -- TODO: автоматизировать
 def ATCs : List ATC := [Gwen, Toshico, Ianto]
 
+-- станция, на которой дежурит диспетчер c
+def station : (c : ATC) → Option DutyStation
+| ⟨ _, on_duty ds _ ⟩ => some ds
+| _ => none
+
+#eval station Ianto
+#eval station Gwen
+
+-- диспетчер, дежурящий на станции ds
+def controller (ds : DutyStation) : Option ATC :=
+  List.find? p ATCs
+  where p : ATC → Bool
+  | ⟨ _, on_duty s _ ⟩ => if s == ds then true else false
+  | _ => false
+
+#eval controller DS1
+#eval controller DS2
+
 -- пропозиция "ATC на дежурстве"
 def ATC.isOnDuty (c : ATC) : Prop :=
   ∃ ds, ∃ t, c.state = on_duty ds t
@@ -65,6 +83,33 @@ example : offDutyATC := ⟨ Gwen, True.intro ⟩
 -- Ianto дежурит (принадлежит типу onDutyATC)
 example : onDutyATC := ⟨ Ianto, t0 ⟩
 
+-- пропозиция "станция занята"
+def busy (s : DutyStation) : Prop :=
+  List.any ATCs p = true
+  where p : ATC → Bool := fun x =>
+    match x.state with
+    | on_duty ds _ => if ds == s then true else false
+    | off_duty _ => false
+
+-- станция DS1 занята
+theorem ds1_busy : busy DS1 := by trivial
+
+-- тип занятых станций
+structure onDutyS where
+  station : DutyStation
+  busy : busy station
+
+-- DS1 занята (относится к типу занятых станций)
+example : onDutyS := ⟨ DS1, ds1_busy ⟩
+
+-- пропозиция "станция свободна" (= "неверно, что станция занята")
+def free (s : DutyStation) : Prop := ¬ busy s
+
+-- станция DS2 свободна
+theorem ds2_free : free DS2 := by intro; contradiction
+-- станция DS1 не свободна
+theorem ds1_not_free : ¬ free DS1 := by intro; trivial
+
 -- события
 inductive Event : Type
 | login : DutyStation → Time → Event
@@ -77,7 +122,7 @@ inductive Event : Type
 -- Условие tt определяет последовательность времён.
 inductive Move : State → Event → State → Prop
 | m1 (s : DutyStation) (t0 t : Time) {tt : t0 ≤ t} :
-  Move (off_duty t0) (Event.login s t) (on_duty s t)
+  free s → Move (off_duty t0) (Event.login s t) (on_duty s t)
 | m2 (s : DutyStation) (t0 t : Time) {tt : t0 ≤ t} :
   Move (on_duty s t0) (Event.logout t) (off_duty t)
 
@@ -88,17 +133,10 @@ theorem t2 : ∀ ton toff, (ton ≤ toff) →  Move (on_duty DS1 ton) (Event.log
      apply Move.m2 DS1
      assumption
 
--- пропозиция "станция занята"
-def busy (s : DutyStation) : Prop :=
-  ∃ (c : ATC), ∃ t, c.state = on_duty s t
-
--- станция DS1 занята
-theorem b1 : busy DS1 := Exists.intro Ianto (Exists.intro 0 rfl)
-
--- тип занятых станций
-structure onDutyS where
-  station : DutyStation
-  busy : busy station
-
--- DS1 занята (относится к типу занятых станций)
-example : onDutyS := ⟨ DS1, b1 ⟩
+-- в любое время toff позже ton диспетчер может войти на станцию DS2
+theorem t3 : ∀ ton toff, (ton ≤ toff) →  Move (off_duty ton) (Event.login DS2 toff) (on_duty DS2 toff) :=
+  by intros
+     have h := ds2_free
+     apply Move.m1 DS2
+     assumption
+     assumption
