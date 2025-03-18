@@ -13,7 +13,7 @@ abbrev Query.exec : {s : Schema} → Query s → Table s :=
 abbrev Row.get : Row s → HasCol s n t→ (asType t) :=
   Tables.Row.get DBType asType
 
--- определяем выражения для работы с данными
+-- определяем выражения для работы с данными (действуют на строку, см.ниже)
 inductive DBExpr (s : Schema) : DBType → Type where
   | col (n : String) (loc : Tables.HasCol DBType s n t) : DBExpr s t
   | eq (e1 e2 : DBExpr s t) : DBExpr s .bool
@@ -30,6 +30,7 @@ def DBExpr.evaluate (row : Row s) : DBExpr s t → (asType t)
 | .and e1 e2 => evaluate row e1 && evaluate row e2
 | .const v => v
 
+-- синтаксис для удобства
 macro "c!" n:term : term => `(DBExpr.col $n (by repeat constructor))
 
 ----------------------------------------
@@ -49,7 +50,7 @@ def tallInDenmark : DBExpr peak .bool :=
 #eval tallInDenmark.evaluate ("Mount Borah", "USA", 3859, 1996)
 
 -- перевод DBExpr в фильтр для select
--- (для типов БД, которые переходят в Bool)
+-- (для типов БД, которые переходят в Bool; eq -- док-во этого)
 def flt (e : DBExpr s t) (eq : asType t = Bool) : (Row s → Bool) :=
   fun r => eq ▸ e.evaluate r
 

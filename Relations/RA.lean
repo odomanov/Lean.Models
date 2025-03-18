@@ -6,22 +6,15 @@ variable
   (asType : DBType → Type)
   [BEq DBType]
   [{t : DBType} → BEq (asType t)]
-  -- (Schema : Type → Type)
-  -- (DBExpr : Tables.Schema DBType → DBType → Type)
-  -- (evaluate0 : {s : Schema DBType} {t : DBType} → DBExpr s t → asType t)
-  -- (evaluate0 : {t : DBType} → {s : Tables.Schema DBType}
-  --   → (row : Tables.Row DBType asType s) → DBExpr s t → (asType t))
-  -- [{s : Tables.Schema DBType} → {t : DBType} → Repr (DBExpr s t)]
 
 namespace RA
 
+-- операции рел.алгебры
 inductive Query : Tables.Schema DBType → Type where
   | table : Tables.Table DBType asType s → Query s
   | union : Query s → Query s → Query s
   | diff : Query s → Query s → Query s
-  -- | select : Query s → DBExpr s .bool → Query s
   | select : Query s → (Tables.Row DBType asType s → Bool) → Query s
-  -- | select : Query s → DBExpr s t → (_ : asType t = Bool) → Query s
   | project : Query s → (s' : Tables.Schema DBType) → Tables.Subschema DBType s' s → Query s'
   | product :
       Query s1 → Query s2 →
@@ -46,13 +39,6 @@ def Tables.Row.append (r1 : Tables.Row DBType asType s1)
   | [], () => r2
   | [_], v => addVal DBType asType v r2
   | _::_::_, (v, r') => (v, Tables.Row.append r' r2)
-
--- -- def List.flatMap (f : α → List β) : (xs : List α) → List β
--- --   | [] => []
--- --   | x :: xs => f x ++ xs.flatMap f
-
--- -- def Table.cartesianProduct (table1 : Table s1) (table2 : Table s2) : Table (s1 ++ s2) :=
--- --   table1.flatMap fun r1 => table2.map r1.append
 
 def Tables.Table.cartesianProduct (table1 : Tables.Table DBType asType s1)
   (table2 : Tables.Table DBType asType s2)
@@ -81,15 +67,12 @@ def prefixRow (row : Tables.Row DBType asType s)
   | [_], v => v
   | _::_::_, (v, r) => (v, prefixRow r)
 
+-- исполнение операций Query
 def Query.exec : Query DBType asType s → Tables.Table DBType asType s
   | .table t => t
   | .union q1 q2 => exec q1 ++ exec q2
   | .diff q1 q2 => exec q1 |>List.without (exec q2)
   | .select q flt => exec q |>.filter flt
-  -- | .select q e isb => List.filter e
-  --                      (fun r => isb ▸ (evaluate0 r e))
-  --                      (exec q)
-  -- | .project q _ sub => List.map (Tables.Row.project DBType asType sub _ ·) (exec q)
   | .project q _ sub => List.map
                         (fun x => (Tables.Row.project DBType asType x _ sub))
                         (exec q)

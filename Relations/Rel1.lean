@@ -1,7 +1,7 @@
 -- пример использования Tables.
 import Relations.Tables
 
--- сначала определяем переменные DBType и asType
+-- сначала определяем переменные DBType и asType для Tables
 inductive DBType where
   | int | string | bool
 deriving BEq, Repr

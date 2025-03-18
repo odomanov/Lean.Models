@@ -8,6 +8,7 @@ inductive DataType where
 deriving BEq, Repr
 
 -- соответствующие им типы Lean (соответствие см. ниже)
+
 structure StringType where
   val : String
   length : Nat := 100

@@ -5,3 +5,5 @@ defaultTargets = ["atc"]
 [[lean_lib]]
 name = "ATC"
 
+[[lean_lib]]
+name = "Relations"

@@ -13,6 +13,7 @@ variable
 
 namespace Tables
 
+-- колонки таблиц
 structure Column where
   name : String
   contains : DBType
@@ -29,10 +30,6 @@ abbrev Row : (Schema DBType) → Type
 
 -- таблица = список строк, построенных по схеме s
 abbrev Table (s : (Schema DBType)) := List (Row DBType asType s)
-
--- deriving instance Repr for Schema
--- deriving instance Repr for Schema, Row, Table
--- deriving instance Repr for Schema, Row, Table
 
 def Row.bEq (r1 r2 : Row DBType asType s) : Bool :=
   match s with
