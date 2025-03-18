@@ -41,13 +41,15 @@ def tallInDenmark : DBExpr peak .bool :=
 #eval tallInDenmark.evaluate ("Mount Borah", "USA", 3859, 1996)
 
 -- перевод DBExpr в фильтр для select
-def flt (e : DBExpr s .bool) : (Row s → Bool) :=
-  fun r => p ▸ e.evaluate r
-  where p : asType .bool = Bool := rfl
+-- (для типов БД, которые переходят в Bool)
+def flt (e : DBExpr s t) (eq : asType t = Bool) : (Row s → Bool) :=
+  fun r => eq ▸ e.evaluate r
+
+macro "⟦" e:term "⟧" : term => `(flt $e rfl)
 
 -- open Query in
 def example1  :=
-  table mountainDiary |>.select (flt (.lt (.const 500) (c! "elevation")))
+  table mountainDiary |>.select ⟦.lt (.const 500) (c! "elevation")⟧
   |>.project [⟨"elevation", .int⟩] (by repeat constructor)
 
 #eval example1.exec
@@ -61,7 +63,7 @@ def example2 :=
   let mountain := table mountainDiary |>.prefixWith "mountain"
   let waterfall := table waterfallDiary |>.prefixWith "waterfall"
   mountain.product waterfall (t1)
-    |>.select (flt (.eq (c! "mountain.location") (c! "waterfall.location")))
+    |>.select ⟦.eq (c! "mountain.location") (c! "waterfall.location")⟧
     |>.project [⟨"mountain.name", .string⟩, ⟨"waterfall.name", .string⟩] (by repeat constructor)
 
 #eval example2.exec
