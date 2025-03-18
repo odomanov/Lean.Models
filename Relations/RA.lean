@@ -1,6 +1,5 @@
--- https://lean-lang.org/functional_programming_in_lean/dependent-types/typed-queries.html
+-- реляционная алгебра
 import Relations.Tables
---open Tables
 
 variable
   (DBType : Type)
@@ -14,7 +13,7 @@ variable
   --   → (row : Tables.Row DBType asType s) → DBExpr s t → (asType t))
   -- [{s : Tables.Schema DBType} → {t : DBType} → Repr (DBExpr s t)]
 
-namespace SQL
+namespace RA
 
 inductive Query : Tables.Schema DBType → Type where
   | table : Tables.Table DBType asType s → Query s
@@ -98,4 +97,4 @@ def Query.exec : Query DBType asType s → Tables.Table DBType asType s
   | .renameColumn q c _ _ => exec q |>.map (Tables.Row.rename DBType asType c ·)
   | .prefixWith _ q => exec q |>.map (prefixRow DBType asType)
 
-end SQL
+end RA

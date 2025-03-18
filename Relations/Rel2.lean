@@ -1,6 +1,6 @@
 import Relations.Tables
 import Relations.Rel1
-import Relations.SQL
+import Relations.RA
 
 abbrev Row.get : Row s → HasCol s n t→ (asType t) :=
   Tables.Row.get DBType asType
@@ -20,10 +20,10 @@ def DBExpr.evaluate (row : Row s) : DBExpr s t → (asType t)
 | .and e1 e2 => evaluate row e1 && evaluate row e2
 | .const v => v
 
-abbrev Query : Schema → Type := SQL.Query DBType asType
-export SQL.Query (table union diff select project product renameColumn prefixWith)
+abbrev Query : Schema → Type := RA.Query DBType asType
+export RA.Query (table union diff select project product renameColumn prefixWith)
 abbrev Query.exec : {s : Schema} → Query s → Table s :=
-  SQL.Query.exec DBType asType
+  RA.Query.exec DBType asType
 
 macro "c!" n:term : term => `(DBExpr.col $n (by repeat constructor))
 
@@ -56,7 +56,7 @@ def example1  :=
 axiom t1 : Tables.disjoint ["mountain.name", "mountain.location", "mountain.elevation", "mountain.lastVisited"]
   ["waterfall.name", "waterfall.location", "waterfall.lastVisited"] = true
 
--- open SQL.Query in
+-- open RA.Query in
 def example2 :=
   let mountain := table mountainDiary |>.prefixWith "mountain"
   let waterfall := table waterfallDiary |>.prefixWith "waterfall"
