@@ -53,6 +53,7 @@ def tallInDenmark : DBExpr peak .bool :=
 def flt (e : DBExpr s t) (eq : asType t = Bool) : (Row s → Bool) :=
   fun r => eq ▸ e.evaluate r
 
+-- обозначение для удобства
 macro "⸨" e:term "⸩" : term => `(flt $e rfl)
 
 -- запросы к БД
@@ -64,16 +65,11 @@ def example1  :=
 
 #eval example1.exec
 
--- это нужно для применения product ниже
-theorem t1 : Tables.disjoint ["mountain.name", "mountain.location", "mountain.elevation", "mountain.lastVisited"]
-  ["waterfall.name", "waterfall.location", "waterfall.lastVisited"] = true :=
-  by exact rfl
-
 open Query in
 def example2 :=
   let mountain := table mountainDiary |>.prefixWith "mountain"
   let waterfall := table waterfallDiary |>.prefixWith "waterfall"
-  mountain.product waterfall t1
+  mountain.product waterfall (by exact rfl)
     |>.select ⸨.eq (c! "mountain.location") (c! "waterfall.location")⸩
     |>.project [⟨"mountain.name", .string⟩, ⟨"waterfall.name", .string⟩] (by repeat constructor)
 
