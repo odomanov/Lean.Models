@@ -9,4 +9,4 @@
 + [Rel2.lean](Rel2.lean) — Примеры применения реляционной алгебры
 + [Classes.lean](Classes.lean) — Модель классов
 + [Classes2Tables.lean](Classes2Tables.lean) — Трансформация классов в
-таблицы (недоделано) 
+таблицы (не закончено) 
