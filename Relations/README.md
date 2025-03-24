@@ -9,9 +9,12 @@
 + [RA_test](RA_test.lean) — Примеры применения реляционной алгебры
 + [Classes](Classes.lean) — Модель классов
 + [Classes2Tables](Classes2Tables.lean) — Трансформация классов в
-таблицы (не закончено) 
+таблицы (не закончено)
+
+### Добавлено:
+
 + [LimitList](LimitList.lean) — Список с ограничениями
-+ [LimitList_testlean](LimitList_test.lean) — Примеры использования
++ [LimitList_test](LimitList_test.lean) — Примеры использования
 + [StringType](StringType.lean) — Тип строк с ограничениями
 + [StringType_test](StringType_test.lean) — Примеры использования
 + [NatType](NatType.lean) — Тип чисел с ограничениями
