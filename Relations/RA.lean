@@ -67,7 +67,7 @@ def prefixRow (row : Tables.Row DBType asType s)
   | [_], v => v
   | _::_::_, (v, r) => (v, prefixRow r)
 
--- исполнение операций Query
+-- исполнение операций Query; результатом является таблица
 def Query.exec : Query DBType asType s → Tables.Table DBType asType s
   | .table t => t
   | .union q1 q2 => exec q1 ++ exec q2

@@ -1,6 +1,6 @@
 -- пример применения реляционной алгебры RA
 import Relations.Tables
-import Relations.Rel1      -- здесь определены нктр таблицы
+import Relations.Tables_test      -- здесь заданы DBType и asType и определены нктр таблицы
 import Relations.RA
 
 -- читаем определения из RA и Tables в наше namespace
@@ -36,10 +36,12 @@ macro "c!" n:term : term => `(DBExpr.col $n (by repeat constructor))
 ----------------------------------------
 -- примеры работы с таблицами из Rel1
 
+-- выражение DBExpr
 def tallInDenmark0 : DBExpr peak .bool :=
   .and (.lt (.const 1000) (.col "elevation" (by repeat constructor)))
        (.eq (.col "location" (by repeat constructor)) (.const "Denmark"))
 
+-- то же, но с синтаксическим сахаром
 def tallInDenmark : DBExpr peak .bool :=
   .and (.lt (.const 1000) (c! "elevation"))
        (.eq (c! "location") (.const "Denmark"))

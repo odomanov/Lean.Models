@@ -82,7 +82,7 @@ def Row.project (row : Row DBType asType s) : (s' : Schema DBType) → Subschema
 def disjoint [BEq α] (xs ys : List α) : Bool :=
   not (xs.any ys.contains || ys.any xs.contains)
 
--- переименовани колонки по адресу HasCol
+-- переименование колонки по адресу HasCol
 def Schema.renameColumn : (s : Schema DBType) → HasCol DBType s n t → String → Schema DBType
   | c :: cs, .here, n' => {c with name := n'} :: cs
   | c :: cs, .there next, n' => c :: renameColumn cs next n'
