@@ -15,6 +15,7 @@ structure LimListU (α : Type u) (lower upper : Nat) extends LimListL α lower w
   lower_le_upper : lower ≤ upper := by simp  -- док-во, что lower не больше upper
 
 -- синтаксис для типов
+-- ⋆ означает отсутствие верхнего предела
 syntax "LimList" term+ "⋆"? : term
 macro_rules
   | `(term|LimList $t $l $u) => `(LimListU $t $l $u)
