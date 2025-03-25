@@ -26,3 +26,6 @@ theorem t1 : ∀ [BEq α] (L : LimList α 1 ⋆), ∃ x, x ∈ L.list := by
   intros eq L
   have m : 0 < L.list.length := by refine Nat.lt_of_succ_le L.lower_le
   apply t0 L.list m
+
+theorem t2 : ∀ [BEq α] (L : LimList α n m), n ≤ L.list.length ∧ L.list.length ≤ m :=
+  fun L => And.intro L.lower_le L.le_upper
