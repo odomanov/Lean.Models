@@ -7,3 +7,6 @@ name = "ATC"
 
 [[lean_lib]]
 name = "Relations"
+
+[[lean_lib]]
+name = "ERModel"
