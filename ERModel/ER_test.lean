@@ -1,6 +1,6 @@
 /- Entity–relationship model -- пример применения
    3 сущности: Department, Employee, Project
-   4 связи: 1) работники департамента: Dept_Emp
+   4 связи: 1) работники отдела: Dept_Emp
             2) начальник-подчинённый: Emp_Dep
             3) руководитель-проект: Manager_Proj
             4) проект-участники: Proj_Worker              -/
@@ -145,7 +145,7 @@ example : der.«работник».1 = ⟨(1000 : Nat), ("John", "Doe"), (20 : N
 example : der.«место работы».1 = { name := "Транспортный цех" } := rfl
 example : der.«место работы».1 = ⟨"Транспортный цех"⟩ := rfl
 
--- Начальник-подчинённый (employee-dependents) -----------------------------------------
+-- Связь "Начальник-подчинённый" (employee-dependents) -----------------------------------------
 
 abbrev Emp_DepIdentBase := REL EmployeeIdent EmployeeIdent
 def Emp_DepIdent : Emp_DepIdentBase

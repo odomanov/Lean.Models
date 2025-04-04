@@ -2,7 +2,7 @@
    1. Сущности
    2. Связи (1:1, 1:N, N:1, N:N) -- только бинарные
    3. Атрибуты -- для сущности или для связи
-   4. Роли -- формализуются при использовании
+   4. Роли -- формализуются при использовании (не в этом файле)
 
    В модели различаются идентификаторы и их значения.
    Aᵢ, Bᵢ это типы идентификаторов, а A, B -- типы соответствующих им значений.
@@ -42,11 +42,11 @@ def Fun.bind (f : Aᵢ → Bᵢ) : mkE bindA → mkE bindB :=
 
 -- перенос отношения
 def REL.bind : REL Aᵢ Bᵢ → REL (mkE bindA) (mkE bindB) :=
-  fun f => fun x y => f (x.snd.fst) (y.snd.fst)
+  fun R => fun x y => R (x.snd.fst) (y.snd.fst)
 
 -- перенос отношения в обратную сторону
 def REL.inv : REL (mkE bindA) (mkE bindB) → REL Aᵢ Bᵢ :=
-  fun f => fun x y => f ⟨bindA x, x, rfl⟩ ⟨bindB y, y, rfl⟩
+  fun R => fun x y => R ⟨bindA x, x, rfl⟩ ⟨bindB y, y, rfl⟩
 
 -- тип бинарных отношений, удовлетворяющих условию P
 structure RELP (P : REL A B → Prop) : Type where
@@ -65,7 +65,7 @@ private def Pbind : (REL Aᵢ Bᵢ → Prop) → REL (mkE bindA) (mkE bindB) →
 
 -- перенос бинарного отношения с условием
 def RELP.bind (Pi : REL Aᵢ Bᵢ → Prop) : RELP Pi → RELP (Pbind bindA bindB Pi) :=
-  fun r => ⟨REL.bind bindA bindB r.pred, r.cond⟩
+  fun R => ⟨REL.bind bindA bindB R.pred, R.cond⟩
 
 
 -- типы связей 1:1, 1:N, N:1, N:N (варианты RELP)
