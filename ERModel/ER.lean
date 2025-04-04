@@ -75,7 +75,7 @@ abbrev Is1N (R : REL A B) : Prop := ∀ a b c, R b a → R c a → b = c
 abbrev REL_1N (A B : Type) : Type := RELP $ @Is1N A B
 
 -- TODO: prove
-axiom ax1N : (ri : REL Aᵢ Bᵢ) → (isi : Is1N ri) → Is1N (REL.bind bindA bindB ri)
+axiom ax1N : (rᵢ : REL Aᵢ Bᵢ) → (isᵢ : Is1N rᵢ) → Is1N (REL.bind bindA bindB rᵢ)
 
 def REL_1N.bind : REL_1N Aᵢ Bᵢ → REL_1N (mkE bindA) (mkE bindB) :=
   fun r => ⟨REL.bind bindA bindB r.pred, ax1N bindA bindB r.pred r.cond⟩
@@ -95,6 +95,7 @@ abbrev Is11 (R : REL A B) : Prop := ∀ a b c d, R a c → R a d → c = d ∧ R
 abbrev REL_11 (A B : Type) : Type := RELP $ @Is11 A B
 
 -- TODO: prove
+-- Должно доказываться?
 axiom ax11 : (ri : REL Aᵢ Bᵢ) → (isi : Is11 ri) → Is11 (REL.bind bindA bindB ri)
 
 def REL_11.bind : REL_11 Aᵢ Bᵢ → REL_11 (mkE bindA) (mkE bindB) :=
@@ -108,8 +109,8 @@ def REL_NN.bind : REL_NN Aᵢ Bᵢ → REL_NN (mkE bindA) (mkE bindB) :=
 
 -- конкретные связи: объекты a b + док-во, что между ними есть связь.
 -- Это тип пар объектов, находящихся в отношении R.
--- REL это отношение, заданное как предикат; Rel -- то же отношение,
---   но в виде структуры.
+-- Если REL это отношение, заданное как предикат, то Rel -- это то же отношение,
+--   но в виде структуры (т.е. пар).
 structure Rel (R : REL A B) where
   src : A
   tgt : B
