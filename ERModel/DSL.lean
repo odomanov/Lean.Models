@@ -1,11 +1,12 @@
 -- ER Model DSL
+-- Язык для задания ER-моделей.
 import Lean
--- import Lib.Alldecls
 open Lean Elab Meta
 
 declare_syntax_cat binding
 syntax "(" ident " => " term ")" : binding
 
+-- основной синтаксис
 syntax "ERModel " ident "where " "Attributes " binding* "endModel" : command
 
 def ERFun (ns : TSyntax `ident) (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
@@ -23,5 +24,3 @@ def ERFun (ns : TSyntax `ident) (is : Array (TSyntax `ident)) (ts : Array (TSynt
 
 macro_rules
 | `(ERModel $ns:ident where Attributes $[($is => $ts)]* endModel) => ERFun ns is ts
-
--- #alldecls

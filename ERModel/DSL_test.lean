@@ -2,6 +2,7 @@
 import Lean
 import ERModel.DSL
 
+-- Задаём модель. Пока только атрибуты.
 ERModel ER1 where
   Attributes
     (name => String × String)
@@ -13,6 +14,8 @@ ERModel ER1 where
     (num => Nat)
     (str => String)
 endModel
+
+-- Проверяем, что определились тип Attr и функция Attr.bind.
 
 -- #print commandERModel_WhereAttributes_Endmodel
 #check ER1.Attr
