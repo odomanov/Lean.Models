@@ -9,7 +9,7 @@ open Lean.Parser.Command
 declare_syntax_cat binding
 syntax "(" ident " => " term ")" : binding
 declare_syntax_cat entity
-syntax ident structExplicitBinder* : entity
+syntax ident structExplicitBinder* "Items " ident* "Binds " binding* : entity
 
 -- основной синтаксис
 syntax "ERModel " ident "where "
@@ -23,16 +23,29 @@ def mkAttrs (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
   let attrId := mkIdent attrNam
   let attrbind := mkIdent $ .str attrNam "bind"
   `(inductive $attrId : Type where $[| $is:ident]*
+    deriving Repr
     open $(← `(Lean.Parser.Command.openDecl| $attrId:ident))
     def $attrbind : $attrId → Type $[| .$is:ident => $ts:term]*
+    --deriving Repr
     )
 
 def mkEnt (acc : TSyntax `command) (e : TSyntax `entity) : MacroM (TSyntax `command) := do
   match e with
-    | `(entity| $nm:ident $flds:structExplicitBinder*) =>
-    let cmd ← `(command| structure $nm where $flds:structExplicitBinder*)
+  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $itm:ident* Binds $[($is => $ts)]*) =>
+    let nmNam := Name.mkSimple (nm.getId.toString ++ "Ident")
+    let nmIdent := mkIdent nmNam
+    let nmIdentBind := mkIdent $ .str nmNam "bind"
+    let ffty := fty.map (fun (x : TSyntax `ident) => mkIdent $ Name.mkStr3 "Attr" x.getId.toString "bind")
+    let cmd ← `(command| structure $nm where $[($fld:ident : $ffty)]* ) --deriving Repr)
+    let mkind ← `(command| inductive $nmIdent : Type where $[| $itm:ident]* deriving Repr)
+    let mkbind ← `(command| def $nmIdentBind : $nmIdent → $nm $[| .$is:ident => $ts:term]*
+                            -- deriving Repr
+                            )
     `($acc:command
-      $cmd:command)
+      $cmd:command
+      $mkind
+      $mkbind
+      )
             | _ => Macro.throwUnsupported
 
 macro_rules

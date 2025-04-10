@@ -15,13 +15,26 @@ ERModel ER1 where
     (str => String)
   Entities
     Department
-      (name : str.bind)
+      (name : str)
+      Items «Трансп.цех» «ОК»
+      Binds
+        («Трансп.цех» => ⟨ "Транспортный цех" ⟩)
+        («ОК» => ⟨ "Отдел кадров" ⟩)
     Employee
-      (emp_no : emp_no.bind)
-      (name   : name.bind)
-      (age    : age.bind)
+      (emp_no : emp_no)
+      (name   : name)
+      (age    : age)
+      Items «Джон Доу» «Мэри Кью» «Мэри Энн»
+      Binds
+        («Джон Доу» => ⟨ (1000 : Nat), ("John", "Doe"), (20 : Nat) ⟩)
+        («Мэри Кью» => ⟨ (1001 : Nat), ("Mary", "Kew"), (25 : Nat) ⟩)
+        («Мэри Энн» => ⟨ (1002 : Nat), ("Mary", "Ann"), (25 : Nat) ⟩)
     Project
-      (proj_no : Attr.num.bind)
+      (proj_no : num)
+      Items Pr1 Pr2
+      Binds
+        (Pr1 => ⟨ (600 : Nat) ⟩)
+        (Pr2 => ⟨ (700 : Nat) ⟩)
 endModel
 
 -- Проверяем, что определились тип Attr и функция Attr.bind.
@@ -43,3 +56,10 @@ example : Attr.id.bind := (5 : Nat)
 #check Department.name
 #check Employee.age
 example : Employee := ⟨(1115 : Nat), ("лвоарпло", "лпрлар"), (22 : Nat)⟩
+
+-- Проверяем интерпретации сущностей
+
+open Department
+#check DepartmentIdent.bind
+#reduce DepartmentIdent.«Трансп.цех».bind
+#reduce EmployeeIdent.«Мэри Энн».bind
