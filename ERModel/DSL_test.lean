@@ -2,7 +2,7 @@
 import Lean
 import ERModel.DSL
 
--- Задаём модель. Пока только атрибуты.
+-- Задаём модель. Пока только атрибуты и сущности.
 ERModel ER1 where
   Attributes
     (name => String × String)
@@ -13,6 +13,15 @@ ERModel ER1 where
     (age => Nat)
     (num => Nat)
     (str => String)
+  Entities
+    Department
+      (name : str.bind)
+    Employee
+      (emp_no : emp_no.bind)
+      (name   : name.bind)
+      (age    : age.bind)
+    Project
+      (proj_no : Attr.num.bind)
 endModel
 
 -- Проверяем, что определились тип Attr и функция Attr.bind.
@@ -28,3 +37,9 @@ example : Attr.address.bind := "длод"
 example : str.bind := "длод"
 example : name.bind := ("длод", "уцзу")
 example : Attr.id.bind := (5 : Nat)
+
+-- Проверяем, что определились сущности
+
+#check Department.name
+#check Employee.age
+example : Employee := ⟨(1115 : Nat), ("лвоарпло", "лпрлар"), (22 : Nat)⟩
