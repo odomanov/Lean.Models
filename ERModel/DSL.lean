@@ -27,29 +27,12 @@ def mkAttrs (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
     def $attrbind : $attrId → Type $[| .$is:ident => $ts:term]*
     )
 
-def mkEnts (ents : List $ TSyntax `entity) : MacroM (TSyntax `command) := do
-  match ents with
-  | [] => Macro.throwError "empty entities list"
-  | [e] => do
-          -- dbg_trace "[e]={e.raw}"
-          match e.raw  with
-           | `(entity| $nm:ident $flds:structExplicitBinder*) =>
-              -- dbg_trace "ENT={nm}\n>> {flds}"
-              `(structure $nm where
-                  $flds:structExplicitBinder*
-              )
-            | _ => Macro.throwUnsupported
-  | e::rest => do
-          -- dbg_trace "[e::rest]={e.raw}"
-           match e.raw with
-           | `(entity| $nm:ident $flds:structExplicitBinder*) =>
-              -- dbg_trace "ENT={nm}> \nREST={rest}"
-              let rst ← mkEnts rest
-              `(
-                structure $nm:ident where
-                  $flds:structExplicitBinder*
-                $rst:command
-              )
+def mkEnt (acc : TSyntax `command) (e : TSyntax `entity) : MacroM (TSyntax `command) := do
+  match e with
+    | `(entity| $nm:ident $flds:structExplicitBinder*) =>
+    let cmd ← `(command| structure $nm where $flds:structExplicitBinder*)
+    `($acc:command
+      $cmd:command)
             | _ => Macro.throwUnsupported
 
 macro_rules
@@ -58,7 +41,7 @@ macro_rules
       Entities $es*
     endModel) => do
     let atts ← mkAttrs is ts
-    let ents ← mkEnts es.toList
+    let ents ← es.foldlM mkEnt $ TSyntax.mk mkNullNode
     `(namespace $ns:ident
       $atts:command
       $ents:command
