@@ -1,6 +1,7 @@
 -- ER Model DSL
 -- Язык для задания ER-моделей.
 import Lean
+import ERModel.ER
 -- import Lib.Alldecls
 open Lean Elab Meta Syntax
 open Lean.Parser.Term
@@ -35,16 +36,19 @@ def mkEnt (acc : TSyntax `command) (e : TSyntax `entity) : MacroM (TSyntax `comm
     let nmNam := Name.mkSimple (nm.getId.toString ++ "Ident")
     let nmIdent := mkIdent nmNam
     let nmIdentBind := mkIdent $ .str nmNam "bind"
+    let nmE := mkIdent $ .mkSimple $ nm.getId.toString ++ "E"
     let ffty := fty.map (fun (x : TSyntax `ident) => mkIdent $ Name.mkStr3 "Attr" x.getId.toString "bind")
     let cmd ← `(command| structure $nm where $[($fld:ident : $ffty)]* ) --deriving Repr)
     let mkind ← `(command| inductive $nmIdent : Type where $[| $itm:ident]* deriving Repr)
     let mkbind ← `(command| def $nmIdentBind : $nmIdent → $nm $[| .$is:ident => $ts:term]*
                             -- deriving Repr
                             )
+    let mkE ← `(command| abbrev $nmE := ER.mkE $nmIdentBind)
     `($acc:command
       $cmd:command
       $mkind
       $mkbind
+      $mkE
       )
             | _ => Macro.throwUnsupported
 

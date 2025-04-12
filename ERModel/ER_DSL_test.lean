@@ -1,6 +1,6 @@
 -- ER Model DSL - test
 import Lean
-import ERModel.DSL
+import ERModel.ER_DSL
 
 -- Задаём модель. Пока только атрибуты и сущности.
 ERModel ER1 where
@@ -63,3 +63,6 @@ open Department
 #check DepartmentIdent.bind
 #reduce DepartmentIdent.«Трансп.цех».bind
 #reduce EmployeeIdent.«Мэри Энн».bind
+
+#check DepartmentE
+#check ProjectE
