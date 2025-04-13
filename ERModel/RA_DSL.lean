@@ -18,12 +18,12 @@ declare_syntax_cat tblrow
 syntax "{ " term " }" : tblrow
 declare_syntax_cat table
 syntax ident tblrow* : table
-declare_syntax_cat schematables
-syntax "Tables " schema table* : schematables
+declare_syntax_cat tablesblock
+syntax "Tables " schema table* : tablesblock
 
-syntax "RAModel " ident "where"
+syntax (name:=ramodel)  "RAModel " ident "where"
   "DBTypes" binding*
-  schematables*
+  tablesblock*
   "endRAModel" : command
 
 def mkDBTypes (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
@@ -60,30 +60,29 @@ def mkTbl (sch : TSyntax `ident) (acc : TSyntax `command) (tb : TSyntax `table) 
     let mktbl ← `(command| def $nm:ident : $tblId $sch:ident := [ $[$item],* ])
     `($acc:command
       $mktbl)
-  | _ => Macro.throwUnsupported
+  | _ => Macro.throwError "mkTbl error"
 
-def mkSchTbls (acc : TSyntax `command) (st : TSyntax `schematables)
+def mkTablesBlock (acc : TSyntax `command) (st : TSyntax `tablesblock)
   : MacroM (TSyntax `command) := do
   match st with
-  | `(schematables| Tables $nm:ident $[($f:str : $ty:ident)]* $tb:table*) =>
-    -- dbg_trace "F={f}\n>>TY={ty}"
-    let schId := mkIdent $ mkSimple "Schema"
+  | `(tablesblock| Tables $nm:ident $[($f:str : $ty:ident)]* $tb:table*) =>
+    let schId := mkIdent `Schema
     let mksch ← `(command| abbrev $nm:ident : $schId:ident := ([ $[⟨$f, $ty⟩],* ] : $schId))
     let mktbls ← tb.foldlM (mkTbl nm) $ TSyntax.mk mkNullNode
     `($acc:command
       $mksch:command
       $mktbls:command)
-  | _ => Macro.throwUnsupported
+  | _ => Macro.throwError "mkTablesBlock error"
 
-macro_rules
-| `(RAModel $ns:ident where
+macro_rules (kind:=ramodel)
+| `(ramodel|
+    RAModel $ns:ident where
       DBTypes $[($is => $ts)]*
-      $st:schematables*
+      $st:tablesblock*
     endRAModel) => do
-    -- dbg_trace "ST={st}"
     let types ← mkDBTypes is ts
-    let recode ← mkRecode --dbt  `asType
-    let tbls ← st.foldlM mkSchTbls $ TSyntax.mk mkNullNode
+    let recode ← mkRecode
+    let tbls ← st.foldlM mkTablesBlock $ TSyntax.mk mkNullNode
     `(namespace $ns:ident
       $types:command
       $recode

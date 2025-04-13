@@ -16,7 +16,7 @@ syntax ident structExplicitBinder* "Items " ident* "Binds " binding* : entity
 syntax "ERModel " ident "where "
   "Attributes " binding*
   "Entities " entity+
-  "endModel" : command
+  "endERModel" : command
 
 def mkAttrs (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
   : MacroM (TSyntax `command) := do
@@ -56,7 +56,7 @@ macro_rules
 | `(ERModel $ns:ident where
       Attributes $[($is => $ts)]*
       Entities $es*
-    endModel) => do
+    endERModel) => do
     let atts ← mkAttrs is ts
     let ents ← es.foldlM mkEnt $ TSyntax.mk mkNullNode
     `(namespace $ns:ident
@@ -66,20 +66,3 @@ macro_rules
     )
 
 -- #alldecls
-
--- structure Department where
---   name : str.bind
-
--- structure Employee where
---   emp_no : emp_no.bind
---   name   : name.bind
---   age    : age.bind
-
--- structure Project where
---   proj_no : num.bind
-
--- -- тип, собирающий все сущности
--- inductive Entity where
--- | dep (d : Department)
--- | emp (e : Employee)
--- | prj (p : Project)

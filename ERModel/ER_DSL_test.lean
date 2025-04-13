@@ -35,7 +35,7 @@ ERModel ER1 where
       Binds
         (Pr1 => ⟨ (600 : Nat) ⟩)
         (Pr2 => ⟨ (700 : Nat) ⟩)
-endModel
+endERModel
 
 -- Проверяем, что определились тип Attr и функция Attr.bind.
 
