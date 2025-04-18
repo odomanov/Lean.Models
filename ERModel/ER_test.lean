@@ -34,9 +34,9 @@ structure Department where
   name : str.bind
 
 structure Employee where
-  emp_no : emp_no.bind
-  name   : name.bind
-  age    : age.bind
+  (emp_no : emp_no.bind)
+  (name   : name.bind)
+  (age    : age.bind)
 
 structure Project where
   proj_no : num.bind
@@ -93,16 +93,23 @@ def Dept_EmpIdentBase : REL DepartmentIdent EmployeeIdent
   | «ОК», «Мэри Энн» => True
   | _, _ => False
 
--- теорема: Dept_EmpIdentBase удовлетворяет условию Is1N
-theorem c1 : Is1N Dept_EmpIdentBase
-  | «Джон Доу», «Трансп.цех», «Трансп.цех», .intro, .intro => by simp
-  | «Мэри Кью», «Трансп.цех», «Трансп.цех», .intro, .intro => rfl
-  | «Мэри Энн», «ОК», «ОК», .intro, .intro => rfl
+syntax "proveIs1N" : tactic
+macro_rules
+| `(tactic| proveIs1N) =>
+  `(tactic|
+    intros a b c; intros;
+    cases a <;> cases b <;> cases c <;> simp <;> contradiction)
+syntax "proveIs11" : tactic
+macro_rules
+| `(tactic| proveIs11) =>
+  `(tactic|
+    intros a b c d; intros;
+    cases a <;> cases b <;> cases c <;> cases d <;> simp <;> contradiction)
 
 -- Dept_EmpIdentBase вместе с условием 1:N
 def Dept_EmpIdent1N : REL_1N DepartmentIdent EmployeeIdent where
   pred := Dept_EmpIdentBase
-  cond := c1
+  cond := by proveIs1N
 
 def Dept_EmpIdent1N.bind := REL_1N.bind DepartmentIdent.bind EmployeeIdent.bind
 
@@ -153,13 +160,9 @@ def Emp_DepIdent : Emp_DepIdentBase
   | «Мэри Энн», «Мэри Кью» => True
   | _, _ => False
 
-theorem c2 : IsN1 Emp_DepIdent
-  | «Джон Доу», «Мэри Кью», «Мэри Кью», .intro, .intro => by simp
-  | «Мэри Энн», «Мэри Кью», «Мэри Кью», .intro, .intro => by simp
-
 def Emp_DepIdentN1 : REL_N1 EmployeeIdent EmployeeIdent where
   pred := Emp_DepIdent
-  cond := c2
+  cond := by proveIs1N
 
 def Emp_DepIdentN1.bind := REL_N1.bind EmployeeIdent.bind EmployeeIdent.bind
 
@@ -178,14 +181,9 @@ def Proj_WorkerIdentBase : REL ProjectIdent EmployeeIdent
 | .Pr2, «Мэри Энн» => True
 | _, _ => False
 
-theorem c3 : Is1N Proj_WorkerIdentBase
-  | «Джон Доу», .Pr1, .Pr1, .intro, .intro => by simp!
-  | «Мэри Энн», .Pr2, .Pr2, .intro, .intro => by simp!
-  | «Мэри Кью», .Pr1, .Pr1, .intro, .intro => by simp!
-
 def Proj_WorkerIdent1N : REL_1N ProjectIdent EmployeeIdent where
   pred := Proj_WorkerIdentBase
-  cond := c3
+  cond := by proveIs1N
 
 def Proj_WorkerIdent1N.bind := REL_1N.bind ProjectIdent.bind EmployeeIdent.bind
 
@@ -209,20 +207,16 @@ def Manager_ProjIdentBase : REL EmployeeIdent ProjectIdent
 | «Джон Доу», .Pr2 => True
 | _, _ => False
 
-theorem c4 : Is1N Manager_ProjIdentBase
-| .Pr1, «Мэри Кью», «Мэри Кью», .intro, .intro => by simp!
-| .Pr2, «Джон Доу», «Джон Доу», .intro, .intro => by simp!
-
-def Manager_ProjIdent1N : REL_1N EmployeeIdent ProjectIdent where
+def Manager_ProjIdent11 : REL_11 EmployeeIdent ProjectIdent where
   pred := Manager_ProjIdentBase
-  cond := c4
+  cond := by proveIs11
 
 def Manager_ProjIdent1N.bind := REL_1N.bind EmployeeIdent.bind ProjectIdent.bind
 
 ------------
-abbrev Manager_ProjIdentRel := Rel_1N Manager_ProjIdent1N
-abbrev Manager_ProjRel := Rel_1N (REL_1N.bind EmployeeIdent.bind ProjectIdent.bind Manager_ProjIdent1N)
-def Manager_ProjRel.bind := Rel.bind EmployeeIdent.bind ProjectIdent.bind Manager_ProjIdent1N.pred
+abbrev Manager_ProjIdentRel := Rel_11 Manager_ProjIdent11
+abbrev Manager_ProjRel := Rel_11 (REL_11.bind EmployeeIdent.bind ProjectIdent.bind Manager_ProjIdent11)
+def Manager_ProjRel.bind := Rel.bind EmployeeIdent.bind ProjectIdent.bind Manager_ProjIdent11.pred
 
 def Manager_ProjRel.«рук.проекта» (r : Manager_ProjRel) : EmployeeE := r.src
 def Manager_ProjRel.«проект» (r : Manager_ProjRel) : ProjectE := r.tgt

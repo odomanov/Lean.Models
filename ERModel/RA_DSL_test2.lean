@@ -43,7 +43,7 @@ open RA1
 #check DBType.string.asType
 #reduce DBType.string.asType
 
-#check Tables.Schema
+#check Schema
 #check RA1.Schema
 #check Schema
 #check Table

@@ -10,14 +10,15 @@ variable
   (asType : DBType → Type)      -- их перевод в типы Lean
   [BEq DBType]
   [{t : DBType} → BEq (asType t)]
+  [Repr DBType]
 
-namespace Tables
+namespace RA.Tables
 
 -- колонки таблиц
 structure Column where
   name : String
   contains : DBType
-deriving Repr
+deriving Repr, BEq
 
 -- схема таблицы = список колонок
 abbrev Schema := List (Column DBType)
@@ -28,8 +29,15 @@ abbrev Row : (Schema DBType) → Type
   | [col] => asType col.contains
   | col :: cols => asType col.contains × Row cols
 
+-- instance : Repr (Row DBType asType s) where
+--   reprPrec := fun x _ => match s with
+--             | [] => repr ()
+--             | [col] => @repr (Repr $ asType col.contains) x
+--             | col :: cols => Std.Format.join [(repr col), (repr cols)]
+
 -- таблица = список строк, построенных по схеме s
 abbrev Table (s : (Schema DBType)) := List (Row DBType asType s)
+-- deriving instance Repr for Table
 
 def Row.bEq (r1 r2 : Row DBType asType s) : Bool :=
   match s with
@@ -62,6 +70,7 @@ inductive Subschema : (Schema DBType) → (Schema DBType) → Type where
       HasCol DBType bigger n t →
       Subschema smaller bigger →
       Subschema (⟨n, t⟩ :: smaller) bigger
+deriving Repr
 
 def Subschema.addColumn (sub : Subschema DBType smaller bigger) : Subschema DBType smaller (c :: bigger) :=
   match sub with
@@ -87,4 +96,4 @@ def Schema.renameColumn : (s : Schema DBType) → HasCol DBType s n t → String
   | c :: cs, .here, n' => {c with name := n'} :: cs
   | c :: cs, .there next, n' => c :: renameColumn cs next n'
 
-end Tables
+end RA.Tables

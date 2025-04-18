@@ -1,66 +1,109 @@
--- ER Model DSL
--- Язык для задания ER-моделей.
+-- Трансформация ER-модели в RA-модель
 import Lean
+import ERModel.ER_DSL_syntax
 import ERModel.RA
 import ERModel.RA_DSL
 -- import Lib.Alldecls
-open Lean Elab Meta Syntax
-open Lean.Parser.Term
-open Lean.Parser.Command
+open Lean Syntax
 set_option linter.unusedVariables false
 
-declare_syntax_cat erbinding
-syntax "(" ident " => " "⟨" term,+ "⟩" ")" : erbinding
-declare_syntax_cat entity
-syntax ident structExplicitBinder* "Items " ident* "Binds " erbinding* : entity
+open RA_DSL
+open ER_DSL
 
--- основной синтаксис
-syntax "ERModel " ident "where "
-  "Attributes " binding+
-  "Entities " entity+
-  "endERModel" : command
+syntax "⟨" term,+ "⟩" : term
 
-def mkTbl2 (acc : TSyntaxArray `tblrow) (tb : TSyntax `erbinding) : MacroM (TSyntaxArray `tblrow) := do
-  match tb with
-  | `(erbinding| ($id:ident => ⟨ $val,* ⟩)) =>
-    match val.getElems with
-    | #[v] => do
-        let (vv : TSyntax `term) := ⟨v⟩
-        let line ← `(tblrow| {($vv:term)})
-        let acc := acc.push line
-        pure acc
-    | v => do
-        let vrest := v.extract 1
-        let v1 := v[0]!
-        let ins ← `(tuple| ($v1, $vrest,*))
-        let line ← `(tblrow| {$ins:tuple})
-        let acc := acc.push line
-        pure acc
-  | _ => Macro.throwError "mkTbl2 error"
-
-def mkEnt (acc : TSyntaxArray `tablesblock) (e : TSyntax `entity) : MacroM (TSyntaxArray `tablesblock) := do
+-- добавляем тип Entity по Items
+private def mkEntIdent (acc : TSyntax `command) (e : TSyntax `entity) : MacroM (TSyntax `command) := do
   match e with
-  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $itm:ident* Binds $bnds*) => --$[($id:ident => ⟨ $val:term,* ⟩)]*) =>
-    let schId := mkIdent $ Name.mkStr1 $ "Schema".append nm.getId.toString
+  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $itm:ident* Binds $bnds*) =>
+    let nmIdent := nm.suffix "Ident"
+    let mkind ← `(command| inductive $nmIdent : Type where $[| $itm:ident]* deriving Repr, BEq)
+    `($acc:command
+      $mkind:command)
+  | _ => Macro.throwError "ER2RA: mkEntIdent error"
+
+-- Для создания таблиц связи DBType должен содержать типы для <entity>Ident. Добавляем их.
+private def mkAttFromEnt (acc : TSyntaxArray `binding) (e : TSyntax `entity)
+  : MacroM (TSyntaxArray `binding) := do
+  match e with
+  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $itm:ident* Binds $bnds*) =>
+    let nmDBT   := nm.suffix "DBT"
+    let nmIdent := nm.suffix "Ident"
+    let bnd ← `(binding| ($nmDBT => $nmIdent))
+    let acc:= acc.push bnd
+    pure acc
+  | _ => Macro.throwError "ER2RA: mkAttFromEnt error"
+
+-- создаём таблицу DBType
+private def mkDBTypes (bnd : TSyntaxArray `binding) (es : TSyntaxArray `entity)
+  : MacroM (TSyntaxArray `binding) := do
+  let attrs ← es.foldlM mkAttFromEnt #[]      -- добавляем <entity>Ident
+  let bnd := bnd.append attrs
+  pure bnd
+
+-- создаём кортежи значений для таблицы сущности
+private def mkTbl (acc : TSyntaxArray `term) (tb : TSyntax `binding) : MacroM (TSyntaxArray `term) := do
+  match tb with
+  | `(binding| ($id:ident => ⟨ $val:term,* ⟩)) =>
+    let line ← match val.getElems with
+        | #[] => `((.$id))
+        | v   => `((.$id, $v,*))
+    let acc := acc.push line
+    pure acc
+  | _ => Macro.throwError "ER2RA: mkTbl error"
+
+-- создаём таблицы для сущностей. Как первую колонку добавляем <entity>Ident
+private def mkEnt (acc : TSyntaxArray `tablesblock) (e : TSyntax `entity)
+  : MacroM (TSyntaxArray `tablesblock) := do
+  match e with
+  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $itm:ident* Binds $bnds*) =>
+    let schId := nm.suffix "Schema"
     let fldstr := fld.map (fun x => TSyntax.mk (mkStrLit x.getId.toString))
-    let mksch ← `(schema| $schId:ident $[($fldstr : $fty)]*)
-    let mktbls ← bnds.foldlM mkTbl2 $ #[]
-    let tbbb := #[← `(table| $nm:ident $mktbls:tblrow*)]
-    let schtbl ← `(tablesblock| Tables $mksch:schema $tbbb:table*)
+    let nmLit := TSyntax.mk (mkStrLit nm.getId.toString)
+    let nmDBT := nm.suffix "DBT"
+    let mksch ← `(schema| $schId:ident ($nmLit : $nmDBT) $[($fldstr : $fty)]*)
+    let mktbls ← bnds.foldlM mkTbl $ #[]                      -- цикл по Binds
+    let tbbb := #[← `(table| $nm:ident $[{ $mktbls }]*)]
+    let schtbl ← `(tablesblock| Tables $mksch:schema $tbbb:table*)  -- блок Tables в RA-модели
     let acc := acc.push schtbl
     pure acc
-  | _ => Macro.throwError "mkEnt error"
+  | _ => Macro.throwError "ER2RA: mkEnt error"
 
+-- создаём таблицы для связей
+private def mkRel (acc : TSyntaxArray `tablesblock) (r : TSyntax `relationship)
+  : MacroM (TSyntaxArray `tablesblock) := do
+  match r with
+  | `(relationship| $e1:ident ($r1:ident) $e2:ident ($r2:ident) $rnam:ident $NN:str
+      $[($left:ident → $right:ident)]*) =>
+      let schId := rnam.suffix "Schema"   -- имя таблицы связи: добавляем "SChema"
+      let e1DBT := e1.suffix "DBT"
+      let e2DBT := e2.suffix "DBT"
+      let toStrLit (x : TSyntax `ident) : TSyntax `str := TSyntax.mk (mkStrLit x.getId.toString)
+      let mksch ← `(schema| $schId:ident ($(toStrLit e1) : $e1DBT) ($(toStrLit e2) : $e2DBT) )
+      let tbbb := #[← `(table| $rnam:ident $[{(.$left, .$right)}]*)]
+      let reltbl ← `(tablesblock| Tables $mksch:schema $tbbb:table*)  -- блок Tables в RA-модели
+      let acc := acc.push reltbl
+      pure acc
+  | _ => Macro.throwError "ER2RA: mkRel error"
+
+
+-- Основной макрос. Переводит DSL ER-модели в DSL RA-модели
 macro_rules
-| `(ERModel $ns:ident where
+| `(ermodel|
+    ERModel $ns:ident where                     -- исходная содель
       Attributes $bnd:binding*
       Entities $es*
+      Relationships $rs*
     endERModel) => do
-    let schtbls ← es.foldlM mkEnt $ #[]
-    `(ramodel|
-      RAModel $ns:ident where
-      DBTypes $bnd:binding*
-      $schtbls:tablesblock*
+    let mkidents ← es.foldlM mkEntIdent $ TSyntax.mk mkNullNode
+    let dbtypes ← mkDBTypes bnd es        -- таблица типов DBType
+    let enttbls ← es.foldlM mkEnt #[]     -- цикл по сущностям
+    let reltbls ← rs.foldlM mkRel #[]     -- цикл по связям
+    `($mkidents:command
+      RAModel $ns:ident where                 -- RA-модель
+        DBTypes $dbtypes:binding*
+        $enttbls:tablesblock*
+        $reltbls:tablesblock*
       endRAModel)
 
 -- #alldecls

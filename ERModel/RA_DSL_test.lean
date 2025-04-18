@@ -2,6 +2,17 @@
 import ERModel.RA
 -- import Lib.Alldecls
 import ERModel.RA_DSL
+open RA.Tables RA_DSL
+
+inductive DepartmentIdent : Type where | «Трансп.цех» | «ОК»
+deriving Repr, BEq
+open DepartmentIdent
+inductive EmployeeIdent where | «Джон Доу» | «Мэри Кью» | «Мэри Энн»
+deriving Repr, BEq
+open EmployeeIdent
+inductive ProjectIdent where | Pr1 | Pr2
+deriving Repr, BEq
+open ProjectIdent
 
 RAModel RA2 where
   DBTypes
@@ -13,45 +24,78 @@ RAModel RA2 where
     (age        => Nat)
     (num        => Nat)
     (str        => String)
+    (DepartmentDBT => DepartmentIdent)
+    (EmployeeDBT   => EmployeeIdent)
   Tables
-    SchemaDepartment
+    DepartmentSchema
+      ("Depatment" : DepartmentDBT)
       ("name" : str)
       Department
-        {("Транспортный цех")}
-        {("Отдел кадров")}
+        {(«Трансп.цех», "Транспортный цех")}
+        {(«ОК», "Отдел кадров")}
   Tables
-    SchemaEmployee
+    EmployeeSchema
+      ("Employee" : EmployeeDBT)
       ("emp_no" : emp_no)
       ("name"   : name)
       ("age"    : age)
       Employee
-        {((1000 : Nat), ("John", "Doe"), (20 : Nat))}
-        {((1001 : Nat), ("Mary", "Kew"), (25 : Nat))}
-        {((1002 : Nat), ("Mary", "Ann"), (25 : Nat))}
+        {(«Джон Доу», (1000 : Nat), ("John", "Doe"), (20 : Nat))}
+        {(«Мэри Кью», (1001 : Nat), ("Mary", "Kew"), (25 : Nat))}
+        {(«Мэри Энн», (1002 : Nat), ("Mary", "Ann"), (25 : Nat))}
   Tables
-    SchemaProject
+    ProjectSchema
       ("proj_no" : num)
       Project
         {((600 : Nat))}
         {((700 : Nat))}
 endRAModel
 
+instance : BEq (RA2.DBType.asType t) where
+  beq := match t with
+    | .name       => @BEq.beq (String × String) _
+    | .id         => @BEq.beq Nat _
+    | .address    => @BEq.beq String _
+    | .work_place => @BEq.beq String _
+    | .emp_no     => @BEq.beq Nat _
+    | .age        => @BEq.beq Nat _
+    | .num        => @BEq.beq Nat _
+    | .str        => @BEq.beq String _
+    | .DepartmentDBT => @BEq.beq DepartmentIdent _
+    | .EmployeeDBT   => @BEq.beq EmployeeIdent _
 
-#check RA2.DBType
 open RA2
 #check DBType.asType
 #check DBType.str.asType
 #reduce DBType.str.asType
 
-#check Tables.Schema
+#check Schema
 #check RA2.Schema
 #check Schema
 #check Table
 #check Column
 #check Department
-#eval Department
-#eval Employee
+#reduce Department
+#reduce Employee
 #eval Project
+#eval EmployeeSchema
 
+-- open RA
+#check RA.Query.table
+#reduce RA.Query.table Employee
+#check RA.Tables.Row.get
+#check RA2.Row --DepartmentSchema
+#check RA2.Row.get
+#check Row
+#check RA2.Schema.renameColumn
+#reduce RA2.HasCol DepartmentSchema "Department" DBType.DepartmentDBT
+
+def DeptIs (d : DepartmentIdent) (r : Row DepartmentSchema) : Bool :=
+  let v := RA2.Row.get r .here;  v == d
+
+def q1 := RA.Query.select (RA.Query.table Department) (DeptIs «ОК»)
+#reduce q1.exec
+def q2 := RA.Query.select (RA.Query.table Department) (DeptIs «Трансп.цех»)
+#reduce q2.exec
 
 -- #alldecls

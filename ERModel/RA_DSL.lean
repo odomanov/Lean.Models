@@ -1,32 +1,15 @@
--- DSL для реляционной алгебры
+-- DSL для реляционной алгебры. Правила
 import Lean
 import ERModel.Tables
+import ERModel.RA_DSL_syntax
+-- import Lib.Alldecls
 
-open Lean Syntax
-open Lean.Name
-open Lean Elab Meta Syntax
-open Lean.Parser.Term
-open Lean.Parser.Command
+open Lean
+-- open RA.Tables
 
-declare_syntax_cat binding
-syntax "(" ident " => " term ")" : binding
-declare_syntax_cat schrow
-syntax "(" str " : " ident ")" : schrow
-declare_syntax_cat schema
-syntax ident schrow* : schema
-declare_syntax_cat tblrow
-syntax "{ " term " }" : tblrow
-declare_syntax_cat table
-syntax ident tblrow* : table
-declare_syntax_cat tablesblock
-syntax "Tables " schema table* : tablesblock
+namespace RA_DSL
 
-syntax (name:=ramodel)  "RAModel " ident "where"
-  "DBTypes" binding*
-  tablesblock*
-  "endRAModel" : command
-
-def mkDBTypes (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
+private def mkDBTypes (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
   : MacroM (TSyntax `command) := do
   let attrNam := .mkSimple "DBType"
   let attrId := mkIdent attrNam
@@ -36,39 +19,40 @@ def mkDBTypes (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
     open $(← `(Lean.Parser.Command.openDecl| $attrId:ident))
     def $attrbind : $attrId → Type $[| .$is:ident => $ts:term]*)
 
-def mkRecode : MacroM (TSyntax `command) := do
-  let mkId (s : String) := mkIdent $ mkSimple s
-  let mkId2 (s₁ : String) (s₂ : String) := mkIdent $ mkStr2 s₁ s₂
-  let schId := mkId "Schema"
-  let dbt := mkIdent $ mkStr1 "DBType"
-  let ast := mkIdent $ mkStr1 "asType"
-  `(abbrev $(mkId "Column") : Type := Tables.Column $dbt
-    abbrev $(mkId "Schema") : Type := Tables.Schema $dbt
-    abbrev $(mkId "Subschema") : $schId → $schId → Type := Tables.Subschema $dbt
-    abbrev $(mkId "Row") : $schId → Type := Tables.Row $dbt $ast
-    abbrev $(mkId "Table") : $schId → Type := Tables.Table $dbt $ast
-    abbrev $(mkId "HasCol") : $schId → String → $dbt → Type := Tables.HasCol $dbt
+private def mkRecode : MacroM (TSyntax `command) := do
+  let mkId (s : String) := mkIdent $ .mkSimple s
+  let mkId2 (s₁ : String) (s₂ : String) := mkIdent $ .mkStr2 s₁ s₂
+  let schId := mkIdent `Schema
+  let dbt := mkIdent `DBType
+  let ast := mkIdent `asType
+  `(abbrev $(mkIdent `Column) : Type := RA.Tables.Column $dbt
+    abbrev $(mkIdent `Schema) : Type := RA.Tables.Schema $dbt
+    abbrev $(mkIdent `Subschema) : $schId → $schId → Type := RA.Tables.Subschema $dbt
+    abbrev $(mkIdent `Row) : $schId → Type := RA.Tables.Row $dbt $ast
+    abbrev $(mkIdent `Table) : $schId → Type := RA.Tables.Table $dbt $ast
+    abbrev $(mkIdent `HasCol) : $schId → String → $dbt → Type := RA.Tables.HasCol $dbt
     def $(mkId2 "Schema" "renameColumn") {n t} : (s : $schId) → $(mkId "HasCol") s n t → String → $schId :=
-      Tables.Schema.renameColumn $dbt
+      RA.Tables.Schema.renameColumn $dbt
+    def $(mkId2 "Row" "get") {s n t} : (r : $(mkIdent `Row) s) → $(mkId "HasCol") s n t → ($(mkIdent `asType) t) :=
+      RA.Tables.Row.get $dbt $ast
   )
 
-def mkTbl (sch : TSyntax `ident) (acc : TSyntax `command) (tb : TSyntax `table) : MacroM (TSyntax `command) := do
+private def mkTbl (sch : TSyntax `ident) (acc : TSyntax `command) (tb : TSyntax `table) : MacroM (TSyntax `command) := do
   match tb with
   | `(table| $nm:ident $[{$item:term}]*) =>
-    let tblNam := Name.mkSimple "Table"
-    let tblId := mkIdent tblNam
+    let tblId := mkIdent `Table
     let mktbl ← `(command| def $nm:ident : $tblId $sch:ident := [ $[$item],* ])
     `($acc:command
       $mktbl)
   | _ => Macro.throwError "mkTbl error"
 
-def mkTablesBlock (acc : TSyntax `command) (st : TSyntax `tablesblock)
+private def mkTablesBlock (acc : TSyntax `command) (st : TSyntax `tablesblock)
   : MacroM (TSyntax `command) := do
   match st with
-  | `(tablesblock| Tables $nm:ident $[($f:str : $ty:ident)]* $tb:table*) =>
+  | `(tablesblock| Tables $sch:ident $[($f:str : $ty:ident)]* $tb:table*) =>
     let schId := mkIdent `Schema
-    let mksch ← `(command| abbrev $nm:ident : $schId:ident := ([ $[⟨$f, $ty⟩],* ] : $schId))
-    let mktbls ← tb.foldlM (mkTbl nm) $ TSyntax.mk mkNullNode
+    let mksch ← `(command| abbrev $sch:ident : $schId:ident := ([ $[⟨$f, $ty⟩],* ] : $schId))
+    let mktbls ← tb.foldlM (mkTbl sch) $ TSyntax.mk mkNullNode
     `($acc:command
       $mksch:command
       $mktbls:command)
@@ -88,3 +72,5 @@ macro_rules (kind:=ramodel)
       $recode
       $tbls:command
       end $ns:ident)
+
+-- #alldecls
