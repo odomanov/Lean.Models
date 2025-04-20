@@ -37,8 +37,8 @@ private def mkAttFromEnt (acc : TSyntaxArray `binding) (e : TSyntax `entity)
 -- создаём таблицу DBType
 private def mkDBTypes (bnd : TSyntaxArray `binding) (es : TSyntaxArray `entity)
   : MacroM (TSyntaxArray `binding) := do
-  let attrs ← es.foldlM mkAttFromEnt #[]      -- добавляем <entity>Ident
-  let bnd := bnd.append attrs
+  let attrs ← es.foldlM mkAttFromEnt #[]      -- вычисляем <entity>Ident
+  let bnd := bnd.append attrs                 -- добавляем <entity>Ident
   pure bnd
 
 -- создаём кортежи значений для таблицы сущности
@@ -90,11 +90,12 @@ private def mkRel (acc : TSyntaxArray `tablesblock) (r : TSyntax `relationship)
 -- Основной макрос. Переводит DSL ER-модели в DSL RA-модели
 macro_rules
 | `(ermodel|
-    ERModel $ns:ident where                     -- исходная содель
+    ERModel $ns:ident where                     -- исходная ER-модель
       Attributes $bnd:binding*
       Entities $es*
       Relationships $rs*
-    endERModel) => do
+    endERModel
+    ) => do
     let mkidents ← es.foldlM mkEntIdent $ TSyntax.mk mkNullNode
     let dbtypes ← mkDBTypes bnd es        -- таблица типов DBType
     let enttbls ← es.foldlM mkEnt #[]     -- цикл по сущностям

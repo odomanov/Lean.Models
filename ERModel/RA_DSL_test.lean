@@ -19,20 +19,21 @@ RAModel RA2 where
     (name       => String × String)
     (id         => Nat)
     (address    => String)
-    (work_place => String)
-    (emp_no     => Nat)
-    (age        => Nat)
+    (emp_no     => { n : Nat // n ≥ 1000 })
+    (age        => { a : Nat // a ≥ 18 ∧ a < 100 })
     (num        => Nat)
-    (str        => String)
+    (str        => { s : String // s ≠ "" })                            -- непустая строка
+    (work_place => { l : List String // l.length > 0 ∧ l.length < 4})   -- список длины 1..3
     (DepartmentDBT => DepartmentIdent)
     (EmployeeDBT   => EmployeeIdent)
+    (ProjectDBT    => ProjectIdent)
   Tables
     DepartmentSchema
       ("Depatment" : DepartmentDBT)
       ("name" : str)
       Department
-        {(«Трансп.цех», "Транспортный цех")}
-        {(«ОК», "Отдел кадров")}
+        {(«Трансп.цех», ⟨"Транспортный цех", by simp⟩)}
+        {(«ОК», ⟨"Отдел кадров", by simp⟩)}
   Tables
     EmployeeSchema
       ("Employee" : EmployeeDBT)
@@ -40,9 +41,9 @@ RAModel RA2 where
       ("name"   : name)
       ("age"    : age)
       Employee
-        {(«Джон Доу», (1000 : Nat), ("John", "Doe"), (20 : Nat))}
-        {(«Мэри Кью», (1001 : Nat), ("Mary", "Kew"), (25 : Nat))}
-        {(«Мэри Энн», (1002 : Nat), ("Mary", "Ann"), (25 : Nat))}
+        {(«Джон Доу», ⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩)}
+        {(«Мэри Кью», ⟨1001,by simp⟩, ("Mary", "Kew"), ⟨25,by simp⟩)}
+        {(«Мэри Энн», ⟨1002,by simp⟩, ("Mary", "Ann"), ⟨25,by simp⟩)}
   Tables
     ProjectSchema
       ("proj_no" : num)
@@ -56,13 +57,14 @@ instance : BEq (RA2.DBType.asType t) where
     | .name       => @BEq.beq (String × String) _
     | .id         => @BEq.beq Nat _
     | .address    => @BEq.beq String _
-    | .work_place => @BEq.beq String _
-    | .emp_no     => @BEq.beq Nat _
-    | .age        => @BEq.beq Nat _
+    | .emp_no     => @BEq.beq { n : Nat // n ≥ 1000 } _
+    | .age        => @BEq.beq { a : Nat // a ≥ 18 ∧ a < 100 } _
     | .num        => @BEq.beq Nat _
-    | .str        => @BEq.beq String _
+    | .str        => @BEq.beq { s : String // s ≠ "" } _
+    | .work_place => @BEq.beq { l : List String // l.length > 0 ∧ l.length < 4} _
     | .DepartmentDBT => @BEq.beq DepartmentIdent _
     | .EmployeeDBT   => @BEq.beq EmployeeIdent _
+    | .ProjectDBT    => @BEq.beq ProjectIdent _
 
 open RA2
 #check DBType.asType
@@ -76,6 +78,7 @@ open RA2
 #check Column
 #check Department
 #reduce Department
+#eval Department
 #reduce Employee
 #eval Project
 #eval EmployeeSchema

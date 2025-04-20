@@ -23,7 +23,7 @@ deriving Repr, BEq
 -- схема таблицы = список колонок
 abbrev Schema := List (Column DBType)
 
--- строка таблицы, построенная по схеме
+-- типы строки таблицы, построенной по схеме (декартово произведение)
 abbrev Row : (Schema DBType) → Type
   | [] => Unit
   | [col] => asType col.contains

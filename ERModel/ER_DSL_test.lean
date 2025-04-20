@@ -11,27 +11,27 @@ ERModel ER1 where
     (name       => String × String)
     (id         => Nat)
     (address    => String)
-    (work_place => String)
-    (emp_no     => Nat)
-    (age        => Nat)
+    (emp_no     => { n : Nat // n ≥ 1000 })
+    (age        => { a : Nat // a ≥ 18 ∧ a < 100 })
     (num        => Nat)
-    (str        => String)
+    (str        => { s : String // s ≠ "" })                            -- непустая строка
+    (work_place => { l : List String // l.length > 0 ∧ l.length < 4})   -- список длины 1..3
   Entities
     Department                        -- имя сущности
       (name : str)                    -- атрибуты сущности (в данном случае один)
       Items «Трансп.цех» «ОК»         -- идентификаторы
       Binds                           -- связь идентификаторов со значениями в Lean
-        («Трансп.цех» => ⟨ "Транспортный цех" ⟩)
-        («ОК» => ⟨ "Отдел кадров" ⟩)
+        («Трансп.цех» => ⟨ ⟨"Транспортный цех", by simp⟩ ⟩)
+        («ОК» => ⟨ ⟨"Отдел кадров", by simp⟩ ⟩)
     Employee                          -- следующая сущность
       (emp_no : emp_no)               -- атрибуты сущности
       (name   : name)
       (age    : age)
       Items «Джон Доу» «Мэри Кью» «Мэри Энн»
       Binds
-        («Джон Доу» => ⟨ (1000 : Nat), ("John", "Doe"), (20 : Nat) ⟩)
-        («Мэри Кью» => ⟨ (1001 : Nat), ("Mary", "Kew"), (25 : Nat) ⟩)
-        («Мэри Энн» => ⟨ (1002 : Nat), ("Mary", "Ann"), (25 : Nat) ⟩)
+        («Джон Доу» => ⟨ ⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩ ⟩)
+        («Мэри Кью» => ⟨ ⟨1001,by simp⟩, ("Mary", "Kew"), ⟨25,by simp⟩ ⟩)
+        («Мэри Энн» => ⟨ ⟨1002,by simp⟩, ("Mary", "Ann"), ⟨25,by simp⟩ ⟩)
     Project
       (proj_no : num)
       Items Pr1 Pr2
@@ -70,15 +70,16 @@ open ER1 Attr     -- <-----
 #check Attr.bind
 #check Attr.bind Attr.name
 example : Attr.address.bind := "длод"
-example : str.bind := "длод"
+example : str.bind := ⟨"длод", by simp⟩
 example : name.bind := ("длод", "уцзу")
 example : Attr.id.bind := (5 : Nat)
+example : work_place.bind := ⟨["орор","длподла"],by simp⟩
 
 -- Проверяем, что определились сущности
 
 #check Department.name
 #check Employee.age
-example : Employee := ⟨(1115 : Nat), ("лвоарпло", "лпрлар"), (22 : Nat)⟩
+example : Employee := ⟨⟨1115,by simp⟩, ("лвоарпло", "лпрлар"), {val:=22, property:=by simp}⟩
 
 -- Проверяем интерпретации сущностей
 
@@ -118,10 +119,11 @@ def der : Dept_EmpRel := ⟨d1, e1, .intro⟩
 
 #reduce der.«работник».1
 #reduce der.«место работы».1
-example : der.«работник».1 = { emp_no := (1000 : Nat), name := ("John", "Doe"), age := (20 : Nat) } := rfl
-example : der.«работник».1 = ⟨(1000 : Nat), ("John", "Doe"), (20 : Nat)⟩ := rfl
-example : der.«место работы».1 = { name := "Транспортный цех" } := rfl
-example : der.«место работы».1 = ⟨"Транспортный цех"⟩ := rfl
+example : der.«работник».1 =
+  { emp_no := ⟨1000,by simp⟩, name := ("John", "Doe"), age := ⟨20,by simp⟩ } := rfl
+example : der.«работник».1 = ⟨⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩⟩ := rfl
+example : der.«место работы».1 = { name := ⟨"Транспортный цех",by simp⟩ } := rfl
+example : der.«место работы».1 = ⟨"Транспортный цех",by simp⟩ := rfl
 
 
 -- #alldecls
