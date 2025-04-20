@@ -20,11 +20,11 @@ def Attr.bind : Attr → Type
 | .name => String × String
 | .id => Nat
 | .address => String
-| .work_place => String
-| .emp_no => Nat
-| .age => Nat
+| .emp_no     => { n : Nat // n ≥ 1000 }
+| .age        => { a : Nat // a ≥ 18 ∧ a < 100 }
 | .num => Nat
-| .str => String
+| .str        => { s : String // s ≠ "" }                            -- непустая строка
+| .work_place => { l : List String // l.length > 0 ∧ l.length < 4}   -- список длины 1..3
 
 
 --== Сущности (будут служить значениями идентификаторов) ==-----------------------------------
@@ -52,15 +52,15 @@ inductive Entity where
 inductive DepartmentIdent : Type where | «Трансп.цех» | «ОК»
 open DepartmentIdent
 def DepartmentIdent.bind : DepartmentIdent → Department
-| «Трансп.цех» => ⟨ "Транспортный цех" ⟩
-| «ОК» => ⟨ "Отдел кадров" ⟩
+| «Трансп.цех» => ⟨ "Транспортный цех", by simp ⟩
+| «ОК» => ⟨ "Отдел кадров", by simp ⟩
 
 inductive EmployeeIdent where | «Джон Доу» | «Мэри Кью» | «Мэри Энн»
 open EmployeeIdent
 def EmployeeIdent.bind : EmployeeIdent → Employee
-| «Джон Доу» => ⟨ (1000 : Nat), ("John", "Doe"), (20 : Nat) ⟩
-| «Мэри Кью» => ⟨ (1001 : Nat), ("Mary", "Kew"), (25 : Nat) ⟩
-| «Мэри Энн» => ⟨ (1002 : Nat), ("Mary", "Ann"), (25 : Nat) ⟩
+| «Джон Доу» => ⟨ ⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩ ⟩
+| «Мэри Кью» => ⟨ ⟨1001,by simp⟩, ("Mary", "Kew"), ⟨25,by simp⟩ ⟩
+| «Мэри Энн» => ⟨ ⟨1002,by simp⟩, ("Mary", "Ann"), ⟨25,by simp⟩ ⟩
 
 inductive ProjectIdent where | Pr1 | Pr2 deriving Repr
 def ProjectIdent.bind : ProjectIdent → Project
@@ -147,10 +147,10 @@ def der : Dept_EmpRel := ⟨d1, e1, .intro⟩
 
 #reduce der.«работник».1
 #reduce der.«место работы».1
-example : der.«работник».1 = { emp_no := (1000 : Nat), name := ("John", "Doe"), age := (20 : Nat) } := rfl
-example : der.«работник».1 = ⟨(1000 : Nat), ("John", "Doe"), (20 : Nat)⟩ := rfl
-example : der.«место работы».1 = { name := "Транспортный цех" } := rfl
-example : der.«место работы».1 = ⟨"Транспортный цех"⟩ := rfl
+example : der.«работник».1 = { emp_no := ⟨1000,by simp⟩, name := ("John", "Doe"), age := ⟨20,by simp⟩ } := rfl
+example : der.«работник».1 = ⟨⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩⟩ := rfl
+example : der.«место работы».1 = { name := ⟨"Транспортный цех", by simp⟩ } := rfl
+example : der.«место работы».1 = ⟨"Транспортный цех", by simp⟩ := rfl
 
 -- Связь "Начальник-подчинённый" (employee-dependents) -----------------------------------------
 

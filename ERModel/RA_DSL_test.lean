@@ -52,19 +52,8 @@ RAModel RA2 where
         {((700 : Nat))}
 endRAModel
 
-instance : BEq (RA2.DBType.asType t) where
-  beq := match t with
-    | .name       => @BEq.beq (String × String) _
-    | .id         => @BEq.beq Nat _
-    | .address    => @BEq.beq String _
-    | .emp_no     => @BEq.beq { n : Nat // n ≥ 1000 } _
-    | .age        => @BEq.beq { a : Nat // a ≥ 18 ∧ a < 100 } _
-    | .num        => @BEq.beq Nat _
-    | .str        => @BEq.beq { s : String // s ≠ "" } _
-    | .work_place => @BEq.beq { l : List String // l.length > 0 ∧ l.length < 4} _
-    | .DepartmentDBT => @BEq.beq DepartmentIdent _
-    | .EmployeeDBT   => @BEq.beq EmployeeIdent _
-    | .ProjectDBT    => @BEq.beq ProjectIdent _
+
+-- Проверка того, что нужные типы и функции определились
 
 open RA2
 #check DBType.asType
@@ -93,9 +82,27 @@ open RA2
 #check RA2.Schema.renameColumn
 #reduce RA2.HasCol DepartmentSchema "Department" DBType.DepartmentDBT
 
+-- проверка операций реляционной алгебры
+
+instance : BEq (RA2.DBType.asType t) where
+  beq := match t with
+    | .name       => @BEq.beq (String × String) _
+    | .id         => @BEq.beq Nat _
+    | .address    => @BEq.beq String _
+    | .emp_no     => @BEq.beq { n : Nat // n ≥ 1000 } _
+    | .age        => @BEq.beq { a : Nat // a ≥ 18 ∧ a < 100 } _
+    | .num        => @BEq.beq Nat _
+    | .str        => @BEq.beq { s : String // s ≠ "" } _
+    | .work_place => @BEq.beq { l : List String // l.length > 0 ∧ l.length < 4} _
+    | .DepartmentDBT => @BEq.beq DepartmentIdent _
+    | .EmployeeDBT   => @BEq.beq EmployeeIdent _
+    | .ProjectDBT    => @BEq.beq ProjectIdent _
+
+-- условие для выбора из таблицы (select)
 def DeptIs (d : DepartmentIdent) (r : Row DepartmentSchema) : Bool :=
   let v := RA2.Row.get r .here;  v == d
 
+-- выбор из таблицы (по значению в столбце DepartmentIdent)
 def q1 := RA.Query.select (RA.Query.table Department) (DeptIs «ОК»)
 #reduce q1.exec
 def q2 := RA.Query.select (RA.Query.table Department) (DeptIs «Трансп.цех»)
