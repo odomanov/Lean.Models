@@ -25,7 +25,8 @@
 ## Комментарии
 + Файлы `Tables` и `RA` содержат, фактически, математическую теорию
   реляционных алгебр, сформулированную в Lean
-  (ср. https://lean-lang.org/functional_programming_in_lean/dependent-types/typed-queries.html).
+  (ср. https://lean-lang.org/functional_programming_in_lean/dependent-types/typed-queries.html,
+  а также формализацию в языке Agda: https://github.com/sabauma/agda-relation-algebra).
   В них определены отношения как таблицы с заголовками и операции с ними
   (select, union,...).  В `RA_DSL` определён язык (DSL) для определения
   реляционных алгебр.  Это набор макросов, которые разворачиваются в код
