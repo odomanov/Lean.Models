@@ -94,13 +94,13 @@ private def mkRel (acc : TSyntax `command) (r : TSyntax `relationship) : MacroM 
                   $[| .$left, .$right => $trueid]*
                   | _,_ => $falseid)
     let NNdef ← `(def $rnamIdentNN : $REL_NN $e1Ident $e2Ident where
-                      pred := $rnamIdentBase
-                      cond := by $proveIsNN:tactic)
+                      val := $rnamIdentBase
+                      property := by $proveIsNN:tactic)
     let NNdef2 ← `(def $rnamIdentNNbind := $REL_NNbind $e1Identbind $e2Identbind)
     let reldef ←  `(abbrev $rnamIdentRel := $Rel_NN $rnamIdentNN:ident
                     abbrev $rnamRel := $Rel_NN ($REL_NNbind $e1Identbind $e2Identbind $rnamIdentNN)
                     def $rnamRelbind := $Relbind $e1Identbind $e2Identbind
-                      $(mkIdent (.str rnamIdentNN.getId "pred")))
+                      $(mkIdent (.str rnamIdentNN.getId "val")))
     let roles ← `(def $rnamIdentRelr1 (r : $rnamIdentRel) : $e1Ident := r.src
                   def $rnamIdentRelr2 (r : $rnamIdentRel) : $e2Ident   := r.tgt
                   def $rnamRelr1 (r : $rnamRel) : $e1E := r.src

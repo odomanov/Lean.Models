@@ -119,8 +119,8 @@ macro_rules
 
 -- Dept_EmpIdentBase вместе с условием 1:N
 def Dept_EmpIdent1N : REL_1N DepartmentIdent EmployeeIdent where
-  pred := Dept_EmpIdentBase
-  cond := by proveIs1N
+  val := Dept_EmpIdentBase
+  property := by proveIs1N
 
 def Dept_EmpIdent1N.bind := REL_1N.bind DepartmentIdent.bind EmployeeIdent.bind
 
@@ -134,7 +134,7 @@ def Dept_EmpIdent1N.bind := REL_1N.bind DepartmentIdent.bind EmployeeIdent.bind
 -- Rel для идентификаторов и значений
 abbrev Dept_EmpIdentRel := Rel_1N Dept_EmpIdent1N
 abbrev Dept_EmpRel := Rel_1N (REL_1N.bind DepartmentIdent.bind EmployeeIdent.bind Dept_EmpIdent1N)
-def Dept_EmpRel.bind := Rel.bind DepartmentIdent.bind EmployeeIdent.bind Dept_EmpIdent1N.pred
+def Dept_EmpRel.bind := Rel.bind DepartmentIdent.bind EmployeeIdent.bind Dept_EmpIdent1N.val
 
 -- роли (для идентификаторов)
 def Dept_EmpIdentRel.«место работы» (r : Dept_EmpIdentRel) : DepartmentIdent := r.src
@@ -172,14 +172,14 @@ def Emp_DepIdent : Emp_DepIdentBase
   | _, _ => False
 
 def Emp_DepIdentN1 : REL_N1 EmployeeIdent EmployeeIdent where
-  pred := Emp_DepIdent
-  cond := by proveIs1N
+  val := Emp_DepIdent
+  property := by proveIs1N
 
 def Emp_DepIdentN1.bind := REL_N1.bind EmployeeIdent.bind EmployeeIdent.bind
 
 abbrev Emp_DepIdentRel := Rel_N1 Emp_DepIdentN1
 abbrev Emp_DepRel := Rel_N1 (REL_N1.bind EmployeeIdent.bind EmployeeIdent.bind Emp_DepIdentN1)
-def Emp_DepRel.bind := Rel.bind EmployeeIdent.bind EmployeeIdent.bind Emp_DepIdentN1.pred
+def Emp_DepRel.bind := Rel.bind EmployeeIdent.bind EmployeeIdent.bind Emp_DepIdentN1.val
 
 def Emp_DepRel.«начальник» (r : Emp_DepRel) : EmployeeE := r.src
 def Emp_DepRel.«подчинённый» (r : Emp_DepRel) : EmployeeE := r.tgt
@@ -193,8 +193,8 @@ def Proj_WorkerIdentBase : REL ProjectIdent EmployeeIdent
 | _, _ => False
 
 def Proj_WorkerIdent1N : REL_1N ProjectIdent EmployeeIdent where
-  pred := Proj_WorkerIdentBase
-  cond := by proveIs1N
+  val := Proj_WorkerIdentBase
+  property := by proveIs1N
 
 def Proj_WorkerIdent1N.bind := REL_1N.bind ProjectIdent.bind EmployeeIdent.bind
 
@@ -219,15 +219,15 @@ def Manager_ProjIdentBase : REL EmployeeIdent ProjectIdent
 | _, _ => False
 
 def Manager_ProjIdent11 : REL_11 EmployeeIdent ProjectIdent where
-  pred := Manager_ProjIdentBase
-  cond := by proveIs11
+  val := Manager_ProjIdentBase
+  property := by proveIs11
 
 def Manager_ProjIdent1N.bind := REL_1N.bind EmployeeIdent.bind ProjectIdent.bind
 
 ------------
 abbrev Manager_ProjIdentRel := Rel_11 Manager_ProjIdent11
 abbrev Manager_ProjRel := Rel_11 (REL_11.bind EmployeeIdent.bind ProjectIdent.bind Manager_ProjIdent11)
-def Manager_ProjRel.bind := Rel.bind EmployeeIdent.bind ProjectIdent.bind Manager_ProjIdent11.pred
+def Manager_ProjRel.bind := Rel.bind EmployeeIdent.bind ProjectIdent.bind Manager_ProjIdent11.val
 
 def Manager_ProjRel.«рук.проекта» (r : Manager_ProjRel) : EmployeeE := r.src
 def Manager_ProjRel.«проект» (r : Manager_ProjRel) : ProjectE := r.tgt

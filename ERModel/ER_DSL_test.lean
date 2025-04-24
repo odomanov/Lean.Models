@@ -97,9 +97,9 @@ open DepartmentIdent EmployeeIdent ProjectIdent
 #check Dept_EmpIdentBase «Трансп.цех» «Джон Доу»
 example : Dept_EmpIdentBase «Трансп.цех» «Джон Доу» := trivial
 #check Dept_EmpIdent1N
-#check Dept_EmpIdent1N.pred
-#reduce Dept_EmpIdent1N.pred
-example : Dept_EmpIdent1N.cond = by proveIs1N := by simp
+#check Dept_EmpIdent1N.val
+#reduce Dept_EmpIdent1N.val
+example : Dept_EmpIdent1N.property = by proveIs1N := by simp
 
 -- проверяем роли
 

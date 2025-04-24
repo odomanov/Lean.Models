@@ -48,63 +48,43 @@ def REL.bind : REL Aᵢ Bᵢ → REL (mkE bindA) (mkE bindB) :=
 def REL.inv : REL (mkE bindA) (mkE bindB) → REL Aᵢ Bᵢ :=
   fun R => fun x y => R ⟨bindA x, x, rfl⟩ ⟨bindB y, y, rfl⟩
 
--- тип бинарных отношений, удовлетворяющих условию P
-structure RELP (P : REL A B → Prop) : Type where
-  pred : REL A B
-  cond : P pred
 
--- вспомогательная функция
--- pred(icate) bind
-private def Pbind : (REL Aᵢ Bᵢ → Prop) → REL (mkE bindA) (mkE bindB) → Prop :=
-  fun P => P ∘ (REL.inv bindA bindB)
-
--- cond(ition) bind ???
--- def Cbind
---   (Pi : REL Aᵢ Bᵢ → Prop) (predi : REL Aᵢ Bᵢ) :=
---   (Pbind bindA bindB Pi) (REL.bind bindA bindB predi)
-
--- перенос бинарного отношения с условием
-def RELP.bind (Pi : REL Aᵢ Bᵢ → Prop) : RELP Pi → RELP (Pbind bindA bindB Pi) :=
-  fun R => ⟨REL.bind bindA bindB R.pred, R.cond⟩
-
-
--- типы связей 1:1, 1:N, N:1, N:N (варианты RELP)
+-- типы связей 1:1, 1:N, N:1, N:N
 
 -- 1:N
 abbrev Is1N (R : REL A B) : Prop := ∀ a b c, R b a → R c a → b = c
-abbrev REL_1N (A B : Type) : Type := RELP $ @Is1N A B
+abbrev REL_1N (A B : Type) : Type := { R : REL A B // Is1N R }
 
 -- TODO: prove
 axiom ax1N : (rᵢ : REL Aᵢ Bᵢ) → (isᵢ : Is1N rᵢ) → Is1N (REL.bind bindA bindB rᵢ)
 
 def REL_1N.bind : REL_1N Aᵢ Bᵢ → REL_1N (mkE bindA) (mkE bindB) :=
-  fun r => ⟨REL.bind bindA bindB r.pred, ax1N bindA bindB r.pred r.cond⟩
+  fun r => ⟨REL.bind bindA bindB r.val, ax1N bindA bindB r.val r.property⟩
 
 -- N:1
 abbrev IsN1 (R : REL A B) : Prop := ∀ a b c, R a b → R a c → b = c
-abbrev REL_N1 (A B : Type) : Type := RELP $ @IsN1 A B
+abbrev REL_N1 (A B : Type) : Type := { R : REL A B // IsN1 R }
 
 -- TODO: prove
 axiom axN1 : (ri : REL Aᵢ Bᵢ) → (isi : IsN1 ri) → IsN1 (REL.bind bindA bindB ri)
 
 def REL_N1.bind : REL_N1 Aᵢ Bᵢ → REL_N1 (mkE bindA) (mkE bindB) :=
-  fun r => ⟨REL.bind bindA bindB r.pred, axN1 bindA bindB r.pred r.cond⟩
+  fun r => ⟨REL.bind bindA bindB r.val, axN1 bindA bindB r.val r.property⟩
 
 -- 1:1
 abbrev Is11 (R : REL A B) : Prop := ∀ a b c d, R a c → R a d → c = d ∧ R a c → R b c → a = b
-abbrev REL_11 (A B : Type) : Type := RELP $ @Is11 A B
+abbrev REL_11 (A B : Type) : Type := {R : REL A B // Is11 R}
 
 -- TODO: prove
 -- Должно доказываться?
 axiom ax11 : (ri : REL Aᵢ Bᵢ) → (isi : Is11 ri) → Is11 (REL.bind bindA bindB ri)
 
 def REL_11.bind : REL_11 Aᵢ Bᵢ → REL_11 (mkE bindA) (mkE bindB) :=
-  fun r => ⟨REL.bind bindA bindB r.pred, ax11 bindA bindB r.pred r.cond⟩
+  fun r => ⟨REL.bind bindA bindB r.val, ax11 bindA bindB r.val r.property⟩
 
 -- N:N  (нет условия)
-abbrev REL_NN (A B : Type) : Type := @RELP A B (λ _ => True)
-def REL_NN.bind : REL_NN Aᵢ Bᵢ → REL_NN (mkE bindA) (mkE bindB) :=
-  fun r => ⟨REL.bind bindA bindB r.pred, r.cond⟩
+abbrev REL_NN (A B : Type) : Type := REL A B
+def REL_NN.bind := REL.bind bindA bindB
 
 
 -- конкретные связи: объекты a b + док-во, что между ними есть связь.
@@ -124,14 +104,14 @@ def Rel.bind (R : REL Aᵢ Bᵢ) : Rel R → Rel (R.bind bindA bindB) :=
            }
 
 -- конкретизации Rel для 1:1, 1:N,...
-abbrev Rel_1N (R : REL_1N A B) := Rel R.pred
-abbrev Rel_N1 (R : REL_N1 A B) := Rel R.pred
-abbrev Rel_11 (R : REL_11 A B) := Rel R.pred
-abbrev Rel_NN (R : REL_NN A B) := Rel R.pred
+abbrev Rel_1N (R : REL_1N A B) := Rel R.val
+abbrev Rel_N1 (R : REL_N1 A B) := Rel R.val
+abbrev Rel_11 (R : REL_11 A B) := Rel R.val
+abbrev Rel_NN (R : REL_NN A B) := Rel R
 
-abbrev Rel_1N.bind (R : REL_1N Aᵢ Bᵢ) := Rel.bind bindA bindB R.pred
-abbrev Rel_N1.bind (R : REL_N1 Aᵢ Bᵢ) := Rel.bind bindA bindB R.pred
-abbrev Rel_11.bind (R : REL_11 Aᵢ Bᵢ) := Rel.bind bindA bindB R.pred
-abbrev Rel_NN.bind (R : REL_NN Aᵢ Bᵢ) := Rel.bind bindA bindB R.pred
+abbrev Rel_1N.bind (R : REL_1N Aᵢ Bᵢ) := Rel.bind bindA bindB R.val
+abbrev Rel_N1.bind (R : REL_N1 Aᵢ Bᵢ) := Rel.bind bindA bindB R.val
+abbrev Rel_11.bind (R : REL_11 Aᵢ Bᵢ) := Rel.bind bindA bindB R.val
+abbrev Rel_NN.bind (R : REL_NN Aᵢ Bᵢ) := Rel.bind bindA bindB R
 
 end ER
