@@ -10,7 +10,7 @@ namespace ER_DSL
 -- declare_syntax_cat binding
 -- scoped syntax "(" ident " => " term ")" : binding
 declare_syntax_cat entity
-syntax ident structExplicitBinder* "Items " ident* "Binds " binding* : entity
+syntax ident structExplicitBinder* "Items " binding* : entity
 declare_syntax_cat relation
 syntax "(" ident " → " ident ")" : relation
 declare_syntax_cat relationship

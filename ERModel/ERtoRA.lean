@@ -15,9 +15,9 @@ syntax "⟨" term,+ "⟩" : term
 -- добавляем тип Entity по Items
 private def mkEntIdent (acc : TSyntax `command) (e : TSyntax `entity) : MacroM (TSyntax `command) := do
   match e with
-  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $itm:ident* Binds $bnds*) =>
+  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $[($is => $ts)]*) =>
     let nmIdent := nm.suffix "Ident"
-    let mkind ← `(command| inductive $nmIdent : Type where $[| $itm:ident]* deriving Repr, BEq)
+    let mkind ← `(command| inductive $nmIdent : Type where $[| $is:ident]* deriving Repr, BEq)
     `($acc:command
       $mkind:command)
   | _ => Macro.throwError "ER2RA: mkEntIdent error"
@@ -26,7 +26,7 @@ private def mkEntIdent (acc : TSyntax `command) (e : TSyntax `entity) : MacroM (
 private def mkAttFromEnt (acc : TSyntaxArray `binding) (e : TSyntax `entity)
   : MacroM (TSyntaxArray `binding) := do
   match e with
-  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $itm:ident* Binds $bnds*) =>
+  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $[($is => $ts)]*) =>
     let nmDBT   := nm.suffix "DBT"
     let nmIdent := nm.suffix "Ident"
     let bnd ← `(binding| ($nmDBT => $nmIdent))
@@ -56,7 +56,7 @@ private def mkTbl (acc : TSyntaxArray `term) (tb : TSyntax `binding) : MacroM (T
 private def mkEnt (acc : TSyntaxArray `tablesblock) (e : TSyntax `entity)
   : MacroM (TSyntaxArray `tablesblock) := do
   match e with
-  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $itm:ident* Binds $bnds*) =>
+  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $bnds*) =>
     let schId := nm.suffix "Schema"
     let fldstr := fld.map (fun x => TSyntax.mk (mkStrLit x.getId.toString))
     let nmLit := TSyntax.mk (mkStrLit nm.getId.toString)

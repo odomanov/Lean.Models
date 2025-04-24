@@ -54,18 +54,29 @@ open DepartmentIdent
 def DepartmentIdent.bind : DepartmentIdent → Department
 | «Трансп.цех» => ⟨ "Транспортный цех", by simp ⟩
 | «ОК» => ⟨ "Отдел кадров", by simp ⟩
+instance : Coe DepartmentIdent Department where
+  coe := DepartmentIdent.bind
 
-inductive EmployeeIdent where | «Джон Доу» | «Мэри Кью» | «Мэри Энн»
+inductive EmployeeIdent where | «Джон Доу» | «Джон Доу'» | «Мэри Кью» | «Мэри Энн»
 open EmployeeIdent
 def EmployeeIdent.bind : EmployeeIdent → Employee
 | «Джон Доу» => ⟨ ⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩ ⟩
+| «Джон Доу'» => ⟨ ⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩ ⟩
 | «Мэри Кью» => ⟨ ⟨1001,by simp⟩, ("Mary", "Kew"), ⟨25,by simp⟩ ⟩
 | «Мэри Энн» => ⟨ ⟨1002,by simp⟩, ("Mary", "Ann"), ⟨25,by simp⟩ ⟩
+instance : Coe EmployeeIdent Employee where
+  coe := EmployeeIdent.bind
+
+-- проверка коэрсии
+def f : Employee → Employee := fun x => x
+theorem t1 : f «Джон Доу» = «Джон Доу'» := rfl
 
 inductive ProjectIdent where | Pr1 | Pr2 deriving Repr
 def ProjectIdent.bind : ProjectIdent → Project
 | .Pr1 => ⟨ (600 : Nat) ⟩
 | .Pr2 => ⟨ (700 : Nat) ⟩
+instance : Coe ProjectIdent Project where
+  coe := ProjectIdent.bind
 
 -- тип, собирающий все идентификаторы сущностей
 inductive EntityIdent where

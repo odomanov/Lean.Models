@@ -24,14 +24,14 @@ private def mkAttrs (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
 -- создаём сущность
 private def mkEnt (acc : TSyntax `command) (e : TSyntax `entity) : MacroM (TSyntax `command) := do
   match e with
-  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $itm:ident* Binds $[($is => $ts)]*) =>
+  | `(entity| $nm:ident $[($fld:ident : $fty:ident)]* Items $[($is => $ts)]*) =>
     let nmNam := (nm.getId.toString ++ "Ident").toName
     let nmIdent := mkIdent nmNam
     let nmIdentBind := mkIdent $ .str nmNam "bind"
     let nmE := nm.suffix "E"
     let ffty := fty.map (fun (x : TSyntax `ident) => mkIdent $ Name.mkStr3 "Attr" x.getId.toString "bind")
     let cmd ← `(command| structure $nm where $[($fld:ident : $ffty)]* ) --deriving Repr)
-    let mkind ← `(command| inductive $nmIdent : Type where $[| $itm:ident]* deriving Repr, BEq)
+    let mkind ← `(command| inductive $nmIdent : Type where $[| $is:ident]* deriving Repr, BEq)
     let mkbind ← `(command| def $nmIdentBind : $nmIdent → $nm $[| .$is:ident => $ts:term]*)
     let mkE ← `(command| abbrev $nmE := ER.mkE $nmIdentBind)
     `($acc:command

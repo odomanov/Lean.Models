@@ -19,23 +19,20 @@ ERModel ER1 where
   Entities
     Department                        -- имя сущности
       (name : str)                    -- атрибуты сущности (в данном случае один)
-      Items «Трансп.цех» «ОК»         -- идентификаторы
-      Binds                           -- связь идентификаторов со значениями в Lean
+      Items                           -- идентификаторы и атрибуты
         («Трансп.цех» => ⟨ ⟨"Транспортный цех", by simp⟩ ⟩)
         («ОК» => ⟨ ⟨"Отдел кадров", by simp⟩ ⟩)
     Employee                          -- следующая сущность
       (emp_no : emp_no)               -- атрибуты сущности
       (name   : name)
       (age    : age)
-      Items «Джон Доу» «Мэри Кью» «Мэри Энн»
-      Binds
+      Items
         («Джон Доу» => ⟨ ⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩ ⟩)
         («Мэри Кью» => ⟨ ⟨1001,by simp⟩, ("Mary", "Kew"), ⟨25,by simp⟩ ⟩)
         («Мэри Энн» => ⟨ ⟨1002,by simp⟩, ("Mary", "Ann"), ⟨25,by simp⟩ ⟩)
     Project
       (proj_no : num)
-      Items Pr1 Pr2
-      Binds
+      Items
         (Pr1 => ⟨ (600 : Nat) ⟩)
         (Pr2 => ⟨ (700 : Nat) ⟩)
   Relationships
