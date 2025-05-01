@@ -17,7 +17,10 @@ private def mkDBTypes (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
   `(inductive $attrId : Type where $[| $is:ident]*
     deriving BEq, Repr
     open $(← `(Lean.Parser.Command.openDecl| $attrId:ident))
-    def $attrbind : $attrId → Type $[| .$is:ident => $ts:term]*)
+    def $attrbind : $attrId → Type $[| .$is:ident => $ts:term]*
+    instance {t} : BEq ($attrbind t) where
+      beq := match t with
+      $[| .$is:ident => @BEq.beq $ts _]*)
 
 private def mkRecode : MacroM (TSyntax `command) := do
   let mkId (s : String) := mkIdent $ .mkSimple s
