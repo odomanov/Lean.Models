@@ -2,6 +2,7 @@
 
 import ERModel.ERtoRA                -- файл задаёт правила обработки ER-модели
 -- import Lib.Alldecls
+open RA.Tables
 
 -- Задаём модель
 
@@ -72,7 +73,7 @@ open DepartmentIdent EmployeeIdent
 #eval Department
 #print EmployeeSchema
 #eval Employee
-#print Dept_EmpSchema     -- схема таблица связи
+#print Dept_EmpSchema     -- схема таблицы связи
 #eval Dept_Emp            -- сама таблица
 
 
@@ -82,7 +83,7 @@ open RA
 
 -- функция проверки департамента в первой колонке
 def DeptIs (d : DepartmentIdent) (r : Row DepartmentSchema) : Bool :=
-  let v := ER1.Row.get r .here; v == d
+  let v := Row.get r .here; v == d
 
 -- Собственно запросы
 

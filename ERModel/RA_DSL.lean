@@ -18,27 +18,12 @@ private def mkDBTypes (is : Array (TSyntax `ident)) (ts : Array (TSyntax `term))
     deriving BEq, Repr
     open $(← `(Lean.Parser.Command.openDecl| $attrId:ident))
     def $attrbind : $attrId → Type $[| .$is:ident => $ts:term]*
-    instance {t} : BEq ($attrbind t) where
+    instance : DBconfig where
+      DBType := $attrId
+      asType := $attrbind
+    instance {t} : BEq (DBconfig.asType t) where
       beq := match t with
       $[| .$is:ident => @BEq.beq $ts _]*)
-
-private def mkRecode : MacroM (TSyntax `command) := do
-  let mkId (s : String) := mkIdent $ .mkSimple s
-  let mkId2 (s₁ : String) (s₂ : String) := mkIdent $ .mkStr2 s₁ s₂
-  let schId := mkIdent `Schema
-  let dbt := mkIdent `DBType
-  let ast := mkIdent `asType
-  `(abbrev $(mkIdent `Column) : Type := RA.Tables.Column $dbt
-    abbrev $(mkIdent `Schema) : Type := RA.Tables.Schema $dbt
-    abbrev $(mkIdent `Subschema) : $schId → $schId → Type := RA.Tables.Subschema $dbt
-    abbrev $(mkIdent `Row) : $schId → Type := RA.Tables.Row $dbt $ast
-    abbrev $(mkIdent `Table) : $schId → Type := RA.Tables.Table $dbt $ast
-    abbrev $(mkIdent `HasCol) : $schId → String → $dbt → Type := RA.Tables.HasCol $dbt
-    def $(mkId2 "Schema" "renameColumn") {n t} : (s : $schId) → $(mkId "HasCol") s n t → String → $schId :=
-      RA.Tables.Schema.renameColumn $dbt
-    def $(mkId2 "Row" "get") {s n t} : (r : $(mkIdent `Row) s) → $(mkId "HasCol") s n t → ($(mkIdent `asType) t) :=
-      RA.Tables.Row.get $dbt $ast
-  )
 
 private def mkTbl (sch : TSyntax `ident) (acc : TSyntax `command) (tb : TSyntax `table) : MacroM (TSyntax `command) := do
   match tb with
@@ -68,11 +53,9 @@ macro_rules (kind:=ramodel)
       $st:tablesblock*
     endRAModel) => do
     let types ← mkDBTypes is ts
-    let recode ← mkRecode
     let tbls ← st.foldlM mkTablesBlock $ TSyntax.mk mkNullNode
     `(namespace $ns:ident
       $types:command
-      $recode
       $tbls:command
       end $ns:ident)
 

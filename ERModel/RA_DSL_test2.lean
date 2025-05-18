@@ -2,6 +2,7 @@
 import ERModel.RA
 import ERModel.RA_DSL
 -- import Lib.Alldecls
+open RA.Tables RA_DSL
 
 RAModel RA1 where
   DBTypes
@@ -44,12 +45,12 @@ open RA1
 #reduce DBType.string.asType
 
 #check Schema
-#check RA1.Schema
+-- #check RA1.Schema
 #check Schema
 #check Table
 #check Column
 #check waterfall
-#eval waterfall
+#reduce waterfall
 #eval waterfallDiary
 #eval locations
 

@@ -7,6 +7,7 @@ import ERModel.RA_DSL
 open Lean Syntax
 set_option linter.unusedVariables false
 
+-- open RA.Tables
 open RA_DSL
 open ER_DSL
 
@@ -20,7 +21,7 @@ private def mkEntIdent (acc : TSyntax `command) (e : TSyntax `entity) : MacroM (
     let mkind ← `(command| inductive $nmIdent : Type where $[| $is:ident]* deriving Repr, BEq)
     `($acc:command
       $mkind:command)
-  | _ => Macro.throwError "ER2RA: mkEntIdent error"
+  | _ => Macro.throwError "ERtoRA: mkEntIdent error"
 
 -- Для создания таблиц связи DBType должен содержать типы для <entity>Ident. Добавляем их.
 private def mkAttFromEnt (acc : TSyntaxArray `binding) (e : TSyntax `entity)
@@ -32,7 +33,7 @@ private def mkAttFromEnt (acc : TSyntaxArray `binding) (e : TSyntax `entity)
     let bnd ← `(binding| ($nmDBT => $nmIdent))
     let acc:= acc.push bnd
     pure acc
-  | _ => Macro.throwError "ER2RA: mkAttFromEnt error"
+  | _ => Macro.throwError "ERtoRA: mkAttFromEnt error"
 
 -- создаём таблицу DBType
 private def mkDBTypes (bnd : TSyntaxArray `binding) (es : TSyntaxArray `entity)
@@ -50,7 +51,7 @@ private def mkTbl (acc : TSyntaxArray `term) (tb : TSyntax `binding) : MacroM (T
         | v   => `((.$id, $v,*))
     let acc := acc.push line
     pure acc
-  | _ => Macro.throwError "ER2RA: mkTbl error"
+  | _ => Macro.throwError "ERtoRA: mkTbl error"
 
 -- создаём таблицы для сущностей. Как первую колонку добавляем <entity>Ident
 private def mkEnt (acc : TSyntaxArray `tablesblock) (e : TSyntax `entity)
@@ -67,7 +68,7 @@ private def mkEnt (acc : TSyntaxArray `tablesblock) (e : TSyntax `entity)
     let schtbl ← `(tablesblock| Tables $mksch:schema $tbbb:table*)  -- блок Tables в RA-модели
     let acc := acc.push schtbl
     pure acc
-  | _ => Macro.throwError "ER2RA: mkEnt error"
+  | _ => Macro.throwError "ERtoRA: mkEnt error"
 
 -- создаём таблицы для связей
 private def mkRel (acc : TSyntaxArray `tablesblock) (r : TSyntax `relationship)
@@ -84,7 +85,7 @@ private def mkRel (acc : TSyntaxArray `tablesblock) (r : TSyntax `relationship)
       let reltbl ← `(tablesblock| Tables $mksch:schema $tbbb:table*)  -- блок Tables в RA-модели
       let acc := acc.push reltbl
       pure acc
-  | _ => Macro.throwError "ER2RA: mkRel error"
+  | _ => Macro.throwError "ERtoRA: mkRel error"
 
 
 -- Основной макрос. Переводит DSL ER-модели в DSL RA-модели

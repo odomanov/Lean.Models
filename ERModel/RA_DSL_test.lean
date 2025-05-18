@@ -2,7 +2,7 @@
 import ERModel.RA
 -- import Lib.Alldecls
 import ERModel.RA_DSL
-open RA.Tables RA_DSL
+open RA.Tables
 
 inductive DepartmentIdent : Type where | «Трансп.цех» | «ОК»
 deriving Repr, BEq
@@ -61,7 +61,7 @@ open RA2
 #reduce DBType.str.asType
 
 #check Schema
-#check RA2.Schema
+-- #check RA2.Schema
 #check Schema
 #check Table
 #check Column
@@ -70,23 +70,23 @@ open RA2
 #eval Department
 #reduce Employee
 #eval Project
-#eval EmployeeSchema
+#reduce EmployeeSchema
 
 -- open RA
 #check RA.Query.table
 #reduce RA.Query.table Employee
 #check RA.Tables.Row.get
-#check RA2.Row --DepartmentSchema
-#check RA2.Row.get
+-- #check RA2.Row --DepartmentSchema
+-- #check RA2.Row.get
 #check Row
-#check RA2.Schema.renameColumn
-#reduce RA2.HasCol DepartmentSchema "Department" DBType.DepartmentDBT
+#check Schema.renameColumn
+#reduce HasCol DepartmentSchema "Department" DBType.DepartmentDBT
 
 -- проверка операций реляционной алгебры
 
 -- условие для выбора из таблицы (select)
 def DeptIs (d : DepartmentIdent) (r : Row DepartmentSchema) : Bool :=
-  let v := RA2.Row.get r .here;  v == d
+  let v := Row.get r .here;  v == d
 
 -- выбор из таблицы (по значению в столбце DepartmentIdent)
 def q1 := RA.Query.select (RA.Query.table Department) (DeptIs «ОК»)

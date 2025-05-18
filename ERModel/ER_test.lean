@@ -26,6 +26,7 @@ def Attr.bind : Attr → Type
 | .str        => { s : String // s ≠ "" }                            -- непустая строка
 | .work_place => { l : List String // l.length > 0 ∧ l.length < 4}   -- список длины 1..3
 
+notation "‹" n "›" => ⟨n, by simp⟩
 
 --== Сущности (будут служить значениями идентификаторов) ==-----------------------------------
 -- Задаются набором атрибутов.
@@ -52,18 +53,18 @@ inductive Entity where
 inductive DepartmentIdent : Type where | «Трансп.цех» | «ОК»
 open DepartmentIdent
 def DepartmentIdent.bind : DepartmentIdent → Department
-| «Трансп.цех» => ⟨ "Транспортный цех", by simp ⟩
-| «ОК» => ⟨ "Отдел кадров", by simp ⟩
+| «Трансп.цех» => ‹"Транспортный цех"›
+| «ОК» => ‹"Отдел кадров"›
 instance : Coe DepartmentIdent Department where
   coe := DepartmentIdent.bind
 
 inductive EmployeeIdent where | «Джон Доу» | «Джон Доу'» | «Мэри Кью» | «Мэри Энн»
 open EmployeeIdent
 def EmployeeIdent.bind : EmployeeIdent → Employee
-| «Джон Доу» => ⟨ ⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩ ⟩
-| «Джон Доу'» => ⟨ ⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩ ⟩
-| «Мэри Кью» => ⟨ ⟨1001,by simp⟩, ("Mary", "Kew"), ⟨25,by simp⟩ ⟩
-| «Мэри Энн» => ⟨ ⟨1002,by simp⟩, ("Mary", "Ann"), ⟨25,by simp⟩ ⟩
+| «Джон Доу»  => ⟨ ‹1000›, ("John", "Doe"), ‹20› ⟩
+| «Джон Доу'» => ⟨ ‹1000›, ("John", "Doe"), ‹20› ⟩
+| «Мэри Кью»  => ⟨ ‹1001›, ("Mary", "Kew"), ‹25› ⟩
+| «Мэри Энн»  => ⟨ ‹1002›, ("Mary", "Ann"), ‹25› ⟩
 instance : Coe EmployeeIdent Employee where
   coe := EmployeeIdent.bind
 

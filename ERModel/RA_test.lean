@@ -1,6 +1,7 @@
 -- тест для реляционной алгебры
 import ERModel.RA
 -- import Lib.Alldecls
+open RA Tables
 
 inductive DepartmentIdent : Type where | «Трансп.цех» | «ОК»
 deriving Repr, BEq
@@ -40,16 +41,9 @@ def DBType.asType : DBType → Type
 | EmployeeDBT   => EmployeeIdent
 | ProjectDBT    => ProjectIdent
 
-abbrev Column : Type := RA.Tables.Column DBType
-abbrev Schema : Type := RA.Tables.Schema DBType
-abbrev Subschema : Schema → Schema → Type := RA.Tables.Subschema DBType
-abbrev Row : Schema → Type := RA.Tables.Row DBType asType
-abbrev Table : Schema → Type := RA.Tables.Table DBType asType
-abbrev HasCol : Schema → String → DBType → Type := RA.Tables.HasCol DBType
-def Schema.renameColumn {n t} : (s : Schema) → HasCol s n t → String → Schema :=
-  RA.Tables.Schema.renameColumn DBType
-def Row.get {s n t} : (r : Row s) → HasCol s n t → asType t :=
-  RA.Tables.Row.get DBType asType
+instance : DBconfig where
+  DBType := DBType
+  asType := DBType.asType
 
 abbrev DepartmentSchema : Schema := [
   ⟨"Department", DepartmentDBT ⟩,
@@ -72,15 +66,13 @@ def Employee : Table EmployeeSchema := [
   («Мэри Энн», ⟨1002,by simp⟩, ("Mary", "Ann"), ⟨25,by simp⟩)
 ]
 abbrev ProjectSchema : Schema := [ ⟨"proj_no", num⟩ ]
-def Project : Table ProjectSchema := [
-  ((600 : Nat)),
-  ((700 : Nat)),
-]
+instance : OfNat (Row ProjectSchema) n where ofNat := n
+def Project : Table ProjectSchema := [ 600, 700 ]
 
 
 -- проверка операций реляционной алгебры (select)
 
-instance : BEq (DBType.asType t) where
+instance : BEq (DBconfig.asType t) where
   beq := match t with
     | .name       => @BEq.beq (String × String) _
     | .id         => @BEq.beq Nat _
