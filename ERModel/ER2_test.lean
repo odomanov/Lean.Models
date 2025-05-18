@@ -3,7 +3,10 @@
    4 связи: 1) работники отдела: Dept_Emp
             2) начальник-подчинённый: Empl_Dep
             3) руководитель-проект: Manager_Proj
-            4) проект-участники: Proj_Worker              -/
+            4) проект-участники: Proj_Worker
+
+TODO: атрибуты отношений                               -/
+
 import ERModel.RelationsDep
 open DepRel
 
@@ -96,13 +99,17 @@ syntax "proveIs1N" : tactic
 macro_rules
 | `(tactic| proveIs1N) =>
   `(tactic|
-    intro attax attay attb relx rely x y eq <;>
+    -- intro attax attay attb relx rely x y eq <;>
+    unfold Is1N;
+    intros; rename_i x y _ <;>
     cases x <;> cases y <;> trivial)
 syntax "proveIsN1" : tactic
 macro_rules
 | `(tactic| proveIsN1) =>
   `(tactic|
-    intro atta attbx attby relx rely x y eq <;>
+    -- intro atta attbx attby relx rely x y eq <;>
+    unfold IsN1;
+    intros; rename_i x y _ <;>
     cases x <;> cases y <;> trivial)
 syntax "proveIs11" : tactic
 macro_rules
@@ -148,7 +155,7 @@ theorem t1 : ∀ (e : Employee atte) (d1 : Department attd1) (d2 : Department at
   cases x <;> cases y <;> trivial
 
 
--- Связь "Начальник-подчинённый" (employee-dependents) -----------------------------------------
+-- Связь "Подчинённые-начальник" (dependents), N:1 ---------------------------------
 
 inductive Empl_Dep : Rel Employee Employee where
 | ed1 : Empl_Dep ⟨«Джон Доу», «Мэри Кью»⟩
@@ -156,13 +163,13 @@ inductive Empl_Dep : Rel Employee Employee where
 deriving Repr
 open Empl_Dep
 
-def Empl_Dep1N : Rel_N1 Employee Employee where
+def Empl_DepN1 : Rel_N1 Employee Employee where
   val := Empl_Dep
-  property := by proveIs1N
+  property := by proveIsN1
 
-def Empl_Dep.«начальник» {r : RELs (Employee att1) (Employee att2)} (_ : Empl_Dep r)
-  : Employee att1 := r.left
 def Empl_Dep.«подчинённый» {r : RELs (Employee att1) (Employee att2)} (_ : Empl_Dep r)
+  : Employee att1 := r.left
+def Empl_Dep.«начальник» {r : RELs (Employee att1) (Employee att2)} (_ : Empl_Dep r)
   : Employee att2 := r.right
 
 -- проект-исполнители ----------------------------------------------

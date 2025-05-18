@@ -19,7 +19,7 @@ def Rel := {atta : α} → {attb : β} → RELs (A atta) (B attb) → Type
 abbrev left  (_ : R r) : A atta := r.left
 abbrev right (_ : R r) : B attb := r.right
 
--- типы связей 1:1, 1:N, N:1, N:N α β
+-- типы связей 1:1, 1:N, N:1, N:N
 
 -- 1:N
 abbrev Is1N : Prop := ∀ (attax attay : α) (attb : β)
@@ -39,7 +39,8 @@ abbrev Rel_N1 := { R : Rel A B // IsN1 A B R }
 abbrev Is11 : Prop := Is1N A B R ∧ IsN1 A B R
 abbrev Rel_11 := { R : Rel A B // Is11 A B R }
 
--- -- N:N  (нет условия)
--- abbrev Rel_NN (α β : Type) : Type := Rel α β
+-- N:N  (нет условия)
+abbrev IsNN : Prop := True
+abbrev Rel_NN := { R : Rel A B // IsNN }
 
 end DepRel
