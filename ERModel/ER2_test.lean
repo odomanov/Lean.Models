@@ -78,10 +78,14 @@ inductive Project : ProjectAttrs → Type where
 deriving Repr
 open Project
 
+-- функции чтения атрибутов
 def Department.get_attrs : Department r → DepartmentAttrs := fun _ => r
 def Employee.get_attrs : Employee r → EmployeeAttrs := fun _ => r
+def Project.get_attrs : Project r → ProjectAttrs := fun _ => r
+
 example : «ОК».get_attrs = { name := ‹"Отдел кадров"› } := rfl
 #eval «Мэри Кью».get_attrs
+example : «Мэри Кью».get_attrs = { emp_no := ‹1001›, name := (‹"Mary"›, ‹"Kew"›), age := ‹25› } := rfl
 
 
 --== Связи ==------------------------------------
