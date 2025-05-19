@@ -26,7 +26,7 @@ def Attr.bind : Attr → Type
 | .str        => { s : String // s ≠ "" }                            -- непустая строка
 | .work_place => { l : List String // l.length > 0 ∧ l.length < 4}   -- список длины 1..3
 
-notation "‹" n "›" => ⟨n, by simp⟩
+notation "‹" n "›" => ⟨n, by native_decide⟩
 
 --== Сущности (будут служить значениями идентификаторов) ==-----------------------------------
 -- Задаются набором атрибутов.

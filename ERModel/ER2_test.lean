@@ -27,13 +27,7 @@ deriving instance BEq, Repr for Str
 deriving instance BEq, Repr for Proj_no
 -- deriving instance BEq, Repr for Percentage
 
--- тактика для проверки мин. и макс. ограничения
-syntax "maxmin" : tactic
-macro_rules
-| `(tactic| maxmin) =>
-  `(tactic| and_intros; native_decide; native_decide)
-
-notation "‹" n "›" => ⟨n, by simp⟩
+notation "‹" n "›" => ⟨n, by native_decide⟩
 
 
 --== Сущности ==-----------------------------------
