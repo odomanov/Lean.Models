@@ -87,30 +87,6 @@ example : «Мэри Кью».get_attrs = { emp_no := ‹1001›, name := (‹"M
 
 --== Связи ==------------------------------------
 
--- тактики
-
-syntax "proveIs1N" : tactic
-macro_rules
-| `(tactic| proveIs1N) =>
-  `(tactic|
-    -- intro attax attay attb relx rely x y eq <;>
-    unfold Is1N;
-    intros; rename_i x y _ <;>
-    cases x <;> cases y <;> trivial)
-syntax "proveIsN1" : tactic
-macro_rules
-| `(tactic| proveIsN1) =>
-  `(tactic|
-    -- intro atta attbx attby relx rely x y eq <;>
-    unfold IsN1;
-    intros; rename_i x y _ <;>
-    cases x <;> cases y <;> trivial)
-syntax "proveIs11" : tactic
-macro_rules
-| `(tactic| proveIs11) =>
-  `(tactic| and_intros; proveIs1N; proveIsN1)
-
-
 -- Связь "работники департамента" --
 
 inductive Dept_Empl : Rel Department Employee where

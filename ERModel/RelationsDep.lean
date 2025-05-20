@@ -28,6 +28,15 @@ abbrev Is1N : Prop := ∀ (attax attay : α) (attb : β)
   right A B R x = right A B R y → HEq relx.left rely.left
 abbrev Rel_1N := { R : Rel A B // Is1N A B R }
 
+syntax "proveIs1N" : tactic
+macro_rules
+| `(tactic| proveIs1N) =>
+  `(tactic|
+    -- intro attax attay attb relx rely x y eq <;>
+    unfold Is1N;
+    intros; rename_i x y _ <;>
+    cases x <;> cases y <;> trivial)
+
 -- N:1
 abbrev IsN1 : Prop := ∀ (atta : α) (attbx attby : β)
   (relx : RELs (A atta) (B attbx)) (rely : RELs (A atta) (B attby))
@@ -35,9 +44,23 @@ abbrev IsN1 : Prop := ∀ (atta : α) (attbx attby : β)
   left A B R x = left A B R y → HEq relx.right rely.right
 abbrev Rel_N1 := { R : Rel A B // IsN1 A B R }
 
+syntax "proveIsN1" : tactic
+macro_rules
+| `(tactic| proveIsN1) =>
+  `(tactic|
+    -- intro atta attbx attby relx rely x y eq <;>
+    unfold IsN1;
+    intros; rename_i x y _ <;>
+    cases x <;> cases y <;> trivial)
+
 -- 1:1
 abbrev Is11 : Prop := Is1N A B R ∧ IsN1 A B R
 abbrev Rel_11 := { R : Rel A B // Is11 A B R }
+
+syntax "proveIs11" : tactic
+macro_rules
+| `(tactic| proveIs11) =>
+  `(tactic| and_intros; proveIs1N; proveIsN1)
 
 -- N:N  (нет условия)
 abbrev IsNN : Prop := True
