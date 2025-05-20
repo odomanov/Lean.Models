@@ -2,5 +2,17 @@ name = "Models"
 version = "0.1.0"
 defaultTargets = ["models"]
 
+[[require]]
+name = "mathlib"
+path = "D:/git/mathlib4"
+
+[[require]]
+name = "batteries"
+git = "https://github.com/leanprover-community/batteries"
+rev = "v4.19.0"
+
+[[lean_lib]]
+name = "Lib"
+
 [[lean_lib]]
 name = "ERModel"
