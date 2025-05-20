@@ -1,3 +1,3 @@
-# Авиадиспетчеры
-+ [Situation.lean](ATC/Situation.lean) — Определения объектов: диспетчеры, пульты, зоны.
-+ [ATC0.lean](ATC/ATC0.lean) — Простейшая модель: диспетчеры и станции.
+# Разные модели в Lean
+
++ [ERModel](ERModel/) — Entity-Relationship Model

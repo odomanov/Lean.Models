@@ -1,12 +1,6 @@
-name = "ATC"
+name = "Models"
 version = "0.1.0"
-defaultTargets = ["atc"]
-
-[[lean_lib]]
-name = "ATC"
-
-[[lean_lib]]
-name = "Relations"
+defaultTargets = ["models"]
 
 [[lean_lib]]
 name = "ERModel"
