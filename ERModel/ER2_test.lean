@@ -142,7 +142,19 @@ def Empl_Dep.«подчинённый» {r : RELs (Employee att1) (Employee att2
 def Empl_Dep.«начальник» {r : RELs (Employee att1) (Employee att2)} (_ : Empl_Dep r)
   : Employee att2 := r.right
 
--- проект-исполнители ----------------------------------------------
+-- тип подчинённых e
+def Dependents (e : Employee atte) := Σ att2, Σ (ed : Employee att2), Empl_Dep ⟨ ed, e ⟩
+example : Dependents «Мэри Кью» := ⟨ _, «Джон Доу», by constructor ⟩
+example : Dependents «Мэри Кью» := ⟨ _, «Мэри Энн», by constructor ⟩
+
+-- теорема: у Джона Доу нет подчинённых
+theorem t2 : ¬ ∃ (_ : Dependents «Джон Доу»), True := by
+  intro p
+  have ⟨⟨x, y, z⟩, h⟩ := p
+  cases z
+
+
+-- Связь "проект-исполнители" ----------------------------------------------
 
 inductive Proj_Worker : Rel Project Employee where
 | pw1 : Proj_Worker ⟨Pr1, «Джон Доу»⟩
@@ -158,7 +170,27 @@ def Proj_Worker.«проект» {r : RELs (Project attp) (Employee atte)} (_ : 
 def Proj_Worker.«участник проекта» {r : RELs (Project attp) (Employee atte)} (_ : Proj_Worker r)
   : Employee atte := r.right
 
--- руководитель-проекты -------
+-- атрибут отношения: процент занятости в проекте
+
+inductive Proj_Worker_Perc : Percentage → Proj_Worker pw → Type where
+| ppw1 : Proj_Worker_Perc ‹20.5›  .pw1
+| ppw2 : Proj_Worker_Perc ‹30.25› .pw2
+| ppw3 : Proj_Worker_Perc ‹80.3›  .pw3
+open Proj_Worker_Perc
+
+def Proj_Worker_Perc.«%» : Proj_Worker_Perc p pw → Percentage := fun _ => p
+
+example : ppw2.«%» = ‹30.25› := rfl
+
+def Proj_Worker.«%» : (pw : Proj_Worker att) → Proj_Worker_Perc p pw → Percentage :=
+  fun _ _ => p
+
+example : Proj_Worker.pw1.«%» ppw1 = ‹20.5› := rfl
+example : Proj_Worker.pw3.«%» ppw3 = ‹80.3› := rfl
+
+
+
+-- Связь "руководитель-проекты" --------------------
 
 inductive Manager_Proj : Rel Employee Project where
 | mp1 : Manager_Proj ⟨«Мэри Кью», Pr1⟩
