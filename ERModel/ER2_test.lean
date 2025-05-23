@@ -3,9 +3,7 @@
    4 связи: 1) работники отдела: Dept_Emp
             2) начальник-подчинённый: Empl_Dep
             3) руководитель-проект: Manager_Proj
-            4) проект-участники: Proj_Worker
-
-TODO: атрибуты отношений                               -/
+            4) проект-участники: Proj_Worker               -/
 
 import ERModel.RelationsDep
 open DepRel

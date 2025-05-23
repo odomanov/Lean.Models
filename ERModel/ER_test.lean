@@ -1,203 +1,155 @@
 /- Entity–relationship model -- пример применения
    3 сущности: Department, Employee, Project
-   4 связи: 1) работники отдела: Dept_Emp
-            2) начальник-подчинённый: Emp_Dep
+   4 связи: 1) работники отдела: Dept_Empl
+            2) начальник-подчинённый: Empl_Dep
             3) руководитель-проект: Manager_Proj
             4) проект-участники: Proj_Worker              -/
-import ERModel.ER
-open ER
+import ERModel.Relations
+open Relations
 
 --== Атрибуты  ==-------------------
 
 -- TODO: для атрибутов должна быть отдельная теория
-inductive Attr where
-| name | id | address | work_place | emp_no | age | num | str
-deriving Repr
-open Attr
-
 -- какой-то произвольный набор атрибутов
-def Attr.bind : Attr → Type
-| .name => String × String
-| .id => Nat
-| .address => String
-| .emp_no     => { n : Nat // n ≥ 1000 }
-| .age        => { a : Nat // a ≥ 18 ∧ a < 100 }
-| .num => Nat
-| .str        => { s : String // s ≠ "" }                            -- непустая строка
-| .work_place => { l : List String // l.length > 0 ∧ l.length < 4}   -- список длины 1..3
+def Attr.name       := String × String
+def Attr.address    := String
+def Attr.emp_no     := { n : Nat // n ≥ 1000 }
+def Attr.age        := { a : Nat // a ≥ 18 ∧ a < 100 }
+def Attr.num        := Nat
+def Attr.str        := { s : String // s ≠ "" }                            -- непустая строка
+def Attr.work_place := { l : List String // l.length > 0 ∧ l.length < 4}   -- список длины 1..3
+open Attr
 
 notation "‹" n "›" => ⟨n, by native_decide⟩
 
 --== Сущности (будут служить значениями идентификаторов) ==-----------------------------------
 -- Задаются набором атрибутов.
 
-structure Department where
-  name : str.bind
+structure DepartmentAttrs where
+  name : str
 
-structure Employee where
-  (emp_no : emp_no.bind)
-  (name   : name.bind)
-  (age    : age.bind)
+structure EmployeeAttrs where
+  (emp_no : emp_no)
+  (name   : name)
+  (age    : age)
 
-structure Project where
-  proj_no : num.bind
+structure ProjectAttrs where
+  proj_no : num
 
 -- тип, собирающий все сущности
-inductive Entity where
-| dep (d : Department)
-| emp (e : Employee)
-| prj (p : Project)
+inductive EntityAttrs where
+| dep (d : DepartmentAttrs)
+| emp (e : EmployeeAttrs)
+| prj (p : ProjectAttrs)
 
--- идентификаторы сущностей и их связи со значениями (binding)
+-- сущности и их атрибуты
 
-inductive DepartmentIdent : Type where | «Трансп.цех» | «ОК»
-open DepartmentIdent
-def DepartmentIdent.bind : DepartmentIdent → Department
+inductive Department : Type where | «Трансп.цех» | «ОК»
+open Department
+def Department.attrs : Department → DepartmentAttrs
 | «Трансп.цех» => ‹"Транспортный цех"›
 | «ОК» => ‹"Отдел кадров"›
-instance : Coe DepartmentIdent Department where
-  coe := DepartmentIdent.bind
+instance : Coe Department DepartmentAttrs where
+  coe := Department.attrs
 
-inductive EmployeeIdent where | «Джон Доу» | «Джон Доу'» | «Мэри Кью» | «Мэри Энн»
-open EmployeeIdent
-def EmployeeIdent.bind : EmployeeIdent → Employee
+inductive Employee where | «Джон Доу» | «Джон Доу'» | «Мэри Кью» | «Мэри Энн»
+open Employee
+def Employee.attrs : Employee → EmployeeAttrs
 | «Джон Доу»  => ⟨ ‹1000›, ("John", "Doe"), ‹20› ⟩
 | «Джон Доу'» => ⟨ ‹1000›, ("John", "Doe"), ‹20› ⟩
 | «Мэри Кью»  => ⟨ ‹1001›, ("Mary", "Kew"), ‹25› ⟩
 | «Мэри Энн»  => ⟨ ‹1002›, ("Mary", "Ann"), ‹25› ⟩
-instance : Coe EmployeeIdent Employee where
-  coe := EmployeeIdent.bind
+instance : Coe Employee EmployeeAttrs where
+  coe := Employee.attrs
 
 -- проверка коэрсии
-def f : Employee → Employee := fun x => x
+def f : EmployeeAttrs → EmployeeAttrs := fun x => x
 theorem t1 : f «Джон Доу» = «Джон Доу'» := rfl
 
-inductive ProjectIdent where | Pr1 | Pr2 deriving Repr
-def ProjectIdent.bind : ProjectIdent → Project
+inductive Project where | Pr1 | Pr2 | Pr3 deriving Repr
+def Project.attrs : Project → ProjectAttrs
 | .Pr1 => ⟨ (600 : Nat) ⟩
 | .Pr2 => ⟨ (700 : Nat) ⟩
-instance : Coe ProjectIdent Project where
-  coe := ProjectIdent.bind
+| .Pr3 => ⟨ (800 : Nat) ⟩
+instance : Coe Project ProjectAttrs where
+  coe := Project.attrs
 
 -- тип, собирающий все идентификаторы сущностей
-inductive EntityIdent where
-| dep (d : DepartmentIdent)
-| emp (e : EmployeeIdent)
-| prj (p : ProjectIdent)
-def EntityIdent.bind : EntityIdent → Entity
-| dep d => .dep d.bind
-| emp e => .emp e.bind
-| prj p => .prj p.bind
+inductive Entity where
+| dep (d : Department)
+| emp (e : Employee)
+| prj (p : Project)
+def Entity.attrs : Entity → EntityAttrs
+| dep d => .dep d.attrs
+| emp e => .emp e.attrs
+| prj p => .prj p.attrs
 
--- сущности, являющиеся значениями (т.е. имеющие идентификаторы)
-abbrev DepartmentE := mkE DepartmentIdent.bind
-abbrev EmployeeE   := mkE EmployeeIdent.bind
-abbrev ProjectE    := mkE ProjectIdent.bind
 
 --== Связи ==------------------------------------
 
 -- Связь "работники департамента" --
 
 -- исходное отношение (на идентификаторах)
-def Dept_EmpIdentBase : REL DepartmentIdent EmployeeIdent
+def Dept_Empl : Rel Department Employee
   | «Трансп.цех», «Джон Доу» => True
   | «Трансп.цех», «Мэри Кью» => True
   | «ОК», «Мэри Энн» => True
   | _, _ => False
 
-syntax "proveIs1N" : tactic
-macro_rules
-| `(tactic| proveIs1N) =>
-  `(tactic|
-    intros a b c; intros;
-    cases a <;> cases b <;> cases c <;> simp <;> contradiction)
-syntax "proveIs11" : tactic
-macro_rules
-| `(tactic| proveIs11) =>
-  `(tactic|
-    intros a b c d; intros;
-    cases a <;> cases b <;> cases c <;> cases d <;> simp <;> contradiction)
-
--- Dept_EmpIdentBase вместе с условием 1:N
-def Dept_EmpIdent1N : REL_1N DepartmentIdent EmployeeIdent where
-  val := Dept_EmpIdentBase
+-- Dept_Empl вместе с условием 1:N
+def Dept_Empl1N : Rel_1N Department Employee where
+  val := Dept_Empl
   property := by proveIs1N
-
-def Dept_EmpIdent1N.bind := REL_1N.bind DepartmentIdent.bind EmployeeIdent.bind
 
 -- TODO: добавляем атрибуты к отношению в целом
 -- .pred, .cond, ...
--- structure Dept_EmpIdentEXT extends REL_1N DepartmentIdent EmployeeIdent where
+-- structure Dept_EmpIdentEXT extends REL_1N Department Employee where
 --   attr1 : str.bind
 
 ---------------
 
--- Rel для идентификаторов и значений
-abbrev Dept_EmpIdentRel := Rel_1N Dept_EmpIdent1N
-abbrev Dept_EmpRel := Rel_1N (REL_1N.bind DepartmentIdent.bind EmployeeIdent.bind Dept_EmpIdent1N)
-def Dept_EmpRel.bind := Rel.bind DepartmentIdent.bind EmployeeIdent.bind Dept_EmpIdent1N.val
+-- SRel
+abbrev Dept_EmplSRel := SRel_1N Dept_Empl1N
 
--- роли (для идентификаторов)
-def Dept_EmpIdentRel.«место работы» (r : Dept_EmpIdentRel) : DepartmentIdent := r.src
-def Dept_EmpIdentRel.«работник»     (r : Dept_EmpIdentRel) : EmployeeIdent   := r.tgt
-
--- роли (для значений)
-def Dept_EmpRel.«место работы» (r : Dept_EmpRel) : DepartmentE := r.src
-def Dept_EmpRel.«работник»     (r : Dept_EmpRel) : EmployeeE   := r.tgt
+-- роли
+def Dept_EmplSRel.«место работы» (r : Dept_EmplSRel) : Department := r.src
+def Dept_EmplSRel.«работник»     (r : Dept_EmplSRel) : Employee   := r.tgt
 
 -- примеры
-def ex1 : Dept_EmpIdentRel := ⟨«Трансп.цех», «Джон Доу», .intro⟩
+def ex1 : Dept_EmplSRel := ⟨«Трансп.цех», «Джон Доу», .intro⟩
 example : ex1.«работник» = «Джон Доу» := rfl
 example : ex1.«место работы» = «Трансп.цех» := rfl
 
-def d1 := XᵢtoX DepartmentIdent.bind DepartmentIdent.«Трансп.цех»
-#reduce d1
-def e1 := XᵢtoX EmployeeIdent.bind EmployeeIdent.«Джон Доу»
-#reduce e1
-def der : Dept_EmpRel := ⟨d1, e1, .intro⟩
-#reduce der
 
-#reduce der.«работник».1
-#reduce der.«место работы».1
-example : der.«работник».1 = { emp_no := ⟨1000,by simp⟩, name := ("John", "Doe"), age := ⟨20,by simp⟩ } := rfl
-example : der.«работник».1 = ⟨⟨1000,by simp⟩, ("John", "Doe"), ⟨20,by simp⟩⟩ := rfl
-example : der.«место работы».1 = { name := ⟨"Транспортный цех", by simp⟩ } := rfl
-example : der.«место работы».1 = ⟨"Транспортный цех", by simp⟩ := rfl
+-- Связь "Начальник-подчинённый" (employee-dependents) -----------------------------------
 
--- Связь "Начальник-подчинённый" (employee-dependents) -----------------------------------------
-
-abbrev Emp_DepIdentBase := REL EmployeeIdent EmployeeIdent
-def Emp_DepIdent : Emp_DepIdentBase
-  | «Джон Доу», «Мэри Кью» => True
-  | «Мэри Энн», «Мэри Кью» => True
+def Empl_Dep : Rel Employee Employee
+  | «Мэри Кью», «Джон Доу» => True
+  | «Мэри Кью», «Мэри Энн» => True
   | _, _ => False
 
-def Emp_DepIdentN1 : REL_N1 EmployeeIdent EmployeeIdent where
-  val := Emp_DepIdent
+def Empl_Dep1N : Rel_1N Employee Employee where
+  val := Empl_Dep
   property := by proveIs1N
 
-def Emp_DepIdentN1.bind := REL_N1.bind EmployeeIdent.bind EmployeeIdent.bind
+abbrev Empl_DepSRel := SRel_1N Empl_Dep1N
 
-abbrev Emp_DepIdentRel := Rel_N1 Emp_DepIdentN1
-abbrev Emp_DepRel := Rel_N1 (REL_N1.bind EmployeeIdent.bind EmployeeIdent.bind Emp_DepIdentN1)
-def Emp_DepRel.bind := Rel.bind EmployeeIdent.bind EmployeeIdent.bind Emp_DepIdentN1.val
+def Empl_DepSRel.«начальник» (r : Empl_DepSRel) : Employee := r.src
+def Empl_DepSRel.«подчинённый» (r : Empl_DepSRel) : Employee := r.tgt
 
-def Emp_DepRel.«начальник» (r : Emp_DepRel) : EmployeeE := r.src
-def Emp_DepRel.«подчинённый» (r : Emp_DepRel) : EmployeeE := r.tgt
 
--- проект-исполнители ----------------------------------------------
+-- Связь "проект-исполнители" N:1----------------------------------------------
 
-def Proj_WorkerIdentBase : REL ProjectIdent EmployeeIdent
+def Proj_Worker : Rel Project Employee
 | .Pr1, «Джон Доу» => True
-| .Pr1, «Мэри Кью» => True
-| .Pr2, «Мэри Энн» => True
+| .Pr2, «Джон Доу» => True
+-- | .Pr2, «Мэри Кью» => True
+| .Pr3, «Мэри Энн» => True
 | _, _ => False
 
-def Proj_WorkerIdent1N : REL_1N ProjectIdent EmployeeIdent where
-  val := Proj_WorkerIdentBase
-  property := by proveIs1N
-
-def Proj_WorkerIdent1N.bind := REL_1N.bind ProjectIdent.bind EmployeeIdent.bind
+def Proj_WorkerN1 : Rel_N1 Project Employee where
+  val := Proj_Worker
+  property := by proveIsN1
 
 -- TODO: добавление атрибута к связи в целом
 -- structure Proj_Worker extends Rel_1N Proj_WorkerIdent1N where
@@ -205,49 +157,25 @@ def Proj_WorkerIdent1N.bind := REL_1N.bind ProjectIdent.bind EmployeeIdent.bind
 
 -----------
 
-abbrev Proj_WorkerIdentRel := Rel_1N Proj_WorkerIdent1N
-abbrev Proj_WorkerRel := Rel_1N (REL_1N.bind ProjectIdent.bind EmployeeIdent.bind Proj_WorkerIdent1N)
-def Proj_WorkerRel.bind := Rel_1N.bind ProjectIdent.bind EmployeeIdent.bind Proj_WorkerIdent1N
+abbrev Proj_WorkerSRel := SRel_N1 Proj_WorkerN1
 
-def Proj_WorkerRel.«проект» (r : Proj_WorkerRel) : ProjectE := r.src
-def Proj_WorkerRel.«участник проекта» (r : Proj_WorkerRel) : EmployeeE := r.tgt
+def Proj_WorkerSRel.«проект» (r : Proj_WorkerSRel) : Project := r.src
+def Proj_WorkerSRel.«участник проекта» (r : Proj_WorkerSRel) : Employee := r.tgt
 
--- руководитель-проекты -------
 
-def Manager_ProjIdentBase : REL EmployeeIdent ProjectIdent
+-- Связь "руководитель-проекты" -------
+
+def Manager_Proj : Rel Employee Project
 | «Мэри Кью», .Pr1 => True
 | «Джон Доу», .Pr2 => True
+| «Мэри Энн», .Pr3 => True
 | _, _ => False
 
-def Manager_ProjIdent11 : REL_11 EmployeeIdent ProjectIdent where
-  val := Manager_ProjIdentBase
+def Manager_Proj11 : Rel_11 Employee Project where
+  val := Manager_Proj
   property := by proveIs11
 
-def Manager_ProjIdent1N.bind := REL_1N.bind EmployeeIdent.bind ProjectIdent.bind
+abbrev Manager_ProjSRel := SRel_11 Manager_Proj11
 
-------------
-abbrev Manager_ProjIdentRel := Rel_11 Manager_ProjIdent11
-abbrev Manager_ProjRel := Rel_11 (REL_11.bind EmployeeIdent.bind ProjectIdent.bind Manager_ProjIdent11)
-def Manager_ProjRel.bind := Rel.bind EmployeeIdent.bind ProjectIdent.bind Manager_ProjIdent11.val
-
-def Manager_ProjRel.«рук.проекта» (r : Manager_ProjRel) : EmployeeE := r.src
-def Manager_ProjRel.«проект» (r : Manager_ProjRel) : ProjectE := r.tgt
-
---------------------------------
--- собираем отношения в один тип
-
-inductive RelIdent where
-| de (r : Dept_EmpIdentRel)
-| ed (r : Emp_DepIdentRel)
-| pw (r : Proj_WorkerIdentRel)
-| mp (r : Manager_ProjIdentRel)
-inductive Rel where
-| de (r : Dept_EmpRel)
-| ed (r : Emp_DepRel)
-| pw (r : Proj_WorkerRel)
-| mp (r : Manager_ProjRel)
-def RelIdent.bind : RelIdent → Rel
-| .de r => Rel.de (Dept_EmpRel.bind r)
-| .ed r => Rel.ed (Emp_DepRel.bind r)
-| .pw r => Rel.pw (Proj_WorkerRel.bind r)
-| .mp r => Rel.mp (Manager_ProjRel.bind r)
+def Manager_ProjSRel.«рук.проекта» (r : Manager_ProjSRel) : Employee := r.src
+def Manager_ProjSRel.«проект» (r : Manager_ProjSRel) : Project := r.tgt
